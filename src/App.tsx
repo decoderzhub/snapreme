@@ -13,6 +13,7 @@ import Pricing from './pages/Pricing';
 import CaseStudies from './pages/CaseStudies';
 import AccountSettings from './pages/AccountSettings';
 import Dashboard from './pages/Dashboard';
+import Monetization from './pages/Monetization';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -47,6 +48,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard/monetization"
+          element={
+            <ProtectedRoute>
+              <Monetization />
             </ProtectedRoute>
           }
         />
