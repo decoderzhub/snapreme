@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, Loader, CheckCircle, AlertCircle, Eye, Lock } from 'lucide-react';
+import { Save, Loader, CheckCircle, AlertCircle, Eye, Lock, X, TrendingUp, Star, Crown, Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ImageUpload from '../components/ImageUpload';
 import Field from '../components/Field';
@@ -41,6 +41,83 @@ function calculateTierFromFollowers(followers: number): 'Rising' | 'Pro' | 'Elit
   if (followers >= 100000) return 'Elite';
   if (followers >= 10000) return 'Pro';
   return 'Rising';
+}
+
+function getTierStyle(tier: 'Rising' | 'Pro' | 'Elite') {
+  const styles = {
+    Rising: {
+      icon: TrendingUp,
+      gradient: 'from-emerald-500 to-teal-500',
+    },
+    Pro: {
+      icon: Star,
+      gradient: 'from-blue-500 to-cyan-500',
+    },
+    Elite: {
+      icon: Crown,
+      gradient: 'from-amber-500 to-orange-500',
+    }
+  };
+  return styles[tier];
+}
+
+interface PreviewCardProps {
+  formData: ProfileUpdateData;
+  tier: 'Rising' | 'Pro' | 'Elite';
+  niches: string[];
+}
+
+function PreviewCard({ formData, tier, niches }: PreviewCardProps) {
+  const tierStyle = getTierStyle(tier);
+  const TierIcon = tierStyle.icon;
+  const price = formData.subscription_price || 5;
+  const category = niches[0] || 'Creator';
+
+  if (!formData.card_image_url) {
+    return (
+      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 text-center">
+        <Eye className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+        <p className="text-slate-500 text-sm">Upload a card image to preview</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="relative h-[420px] w-full">
+        <img
+          src={formData.card_image_url}
+          alt={formData.display_name || 'Preview'}
+          className="w-full h-full object-cover"
+        />
+
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
+
+        <div className={`absolute top-3 left-3 px-3 py-1.5 bg-gradient-to-r ${tierStyle.gradient} rounded-full flex items-center gap-1.5 shadow-lg`}>
+          <TierIcon className="w-3.5 h-3.5 text-white" />
+          <span className="text-white text-xs font-semibold">{tier}</span>
+        </div>
+
+        <div className="absolute bottom-0 p-4 text-left space-y-1">
+          <p className="text-white text-lg font-semibold leading-tight">
+            {formData.display_name || formData.name || 'Your Name'}
+          </p>
+          <p className="text-white/80 text-sm">{formData.handle || '@yourhandle'}</p>
+
+          <div className="flex items-center gap-2 mt-1">
+            <span className="px-2 py-0.5 text-[11px] bg-white/20 text-white rounded-full">
+              {category}
+            </span>
+          </div>
+        </div>
+
+        <div className="absolute top-3 right-3 px-3 py-1 bg-black/60 text-white text-xs rounded-full flex items-center gap-1">
+          <Heart className="w-3 h-3 text-pink-400" />
+          <span>${price}/mo</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function AccountSettings() {
@@ -85,6 +162,7 @@ export default function AccountSettings() {
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [contentTypeInput, setContentTypeInput] = useState('');
   const [topRegionInput, setTopRegionInput] = useState('');
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const derivedTier = calculateTierFromFollowers(formData.followers || 0);
 
@@ -381,10 +459,19 @@ export default function AccountSettings() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/60 to-transparent py-12">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Account Settings</h1>
-          <p className="text-slate-600">Manage your creator profile and account preferences</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">Account Settings</h1>
+            <p className="text-slate-600">Manage your creator profile and account preferences</p>
+          </div>
+          <button
+            onClick={() => setShowPreviewModal(true)}
+            className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            <Eye className="w-4 h-4" />
+            Preview Card
+          </button>
         </div>
 
         {error && (
@@ -401,23 +488,23 @@ export default function AccountSettings() {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-slate-900">Profile Completeness</h3>
-            <span className="text-2xl font-bold text-blue-600">{completeness}%</span>
-          </div>
-          <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-            <div
-              className="bg-gradient-to-r from-blue-600 to-indigo-500 h-full transition-all duration-500"
-              style={{ width: `${completeness}%` }}
-            />
-          </div>
-          <p className="text-xs text-slate-500 mt-2">
-            Complete your profile to increase visibility to brands
-          </p>
-        </div>
-
-        <div className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-slate-900">Profile Completeness</h3>
+                <span className="text-2xl font-bold text-blue-600">{completeness}%</span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-blue-600 to-indigo-500 h-full transition-all duration-500"
+                  style={{ width: `${completeness}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                Complete your profile to increase visibility to brands
+              </p>
+            </div>
           <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Profile Pictures</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -826,8 +913,31 @@ export default function AccountSettings() {
               )}
             </button>
           </div>
+          </div>
+
+          <div className="hidden lg:block lg:col-span-1">
+            <div className="sticky top-8 space-y-4">
+              <h3 className="text-lg font-semibold text-slate-900">Card Preview</h3>
+              <PreviewCard formData={formData} tier={derivedTier} niches={niches} />
+            </div>
+          </div>
         </div>
       </div>
+
+      {showPreviewModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 lg:hidden">
+          <div className="relative w-full max-w-sm">
+            <button
+              onClick={() => setShowPreviewModal(false)}
+              className="absolute -top-12 right-0 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+              aria-label="Close preview"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <PreviewCard formData={formData} tier={derivedTier} niches={niches} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
