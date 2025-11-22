@@ -6,6 +6,7 @@ export interface Creator {
   handle: string;
   avatar_url: string | null;
   cover_url: string | null;
+  card_image_url?: string | null;
   tier: 'Rising' | 'Pro' | 'Elite';
   bio: string | null;
   short_bio?: string;
@@ -25,6 +26,8 @@ export interface Creator {
   verification_notes?: string;
   account_status?: 'active' | 'suspended' | 'deleted';
   admin_notes?: string;
+  onboarding_complete?: boolean;
+  is_stripe_connected?: boolean;
   created_at: string;
   updated_at: string;
   niches?: string[];

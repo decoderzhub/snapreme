@@ -12,6 +12,7 @@ import NewBrief from './pages/NewBrief';
 import Pricing from './pages/Pricing';
 import CaseStudies from './pages/CaseStudies';
 import AccountSettings from './pages/AccountSettings';
+import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import Monetization from './pages/Monetization';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -67,6 +68,15 @@ function App() {
         <Route path="/briefs/new" element={<NewBrief />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/case-studies" element={<CaseStudies />} />
+
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/account/settings"

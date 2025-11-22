@@ -93,6 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             followers: 0,
             engagement_rate: 0,
             starting_rate: 0,
+            avatar_url: null,
+            cover_url: null,
+            card_image_url: null,
+            onboarding_complete: false,
           });
 
         if (profileError) throw profileError;

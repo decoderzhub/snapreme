@@ -7,10 +7,9 @@ interface Props {
 }
 
 export default function CreatorCard({ creator, onClick }: Props) {
-  const cover =
-    creator.cover_url ||
-    creator.avatar_url ||
-    'https://images.pexels.com/photos/3348748/pexels-photo-3348748.jpeg';
+  if (!creator.card_image_url || !creator.avatar_url) return null;
+
+  const cover = creator.card_image_url;
 
   const price = creator.subscription_price || 5;
 
