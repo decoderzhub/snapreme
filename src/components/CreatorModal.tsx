@@ -24,13 +24,19 @@ export default function CreatorModal({ creator, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden relative">
+    <div
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden relative"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 bg-black/10 hover:bg-black/20 rounded-full p-1.5 z-10"
+          className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm hover:bg-white rounded-full p-2 z-10 shadow-lg"
         >
-          <X className="w-4 h-4 text-slate-700" />
+          <X className="w-5 h-5 text-slate-900" />
         </button>
 
         <div className="relative h-60">
