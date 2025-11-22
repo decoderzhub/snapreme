@@ -22,9 +22,16 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div>
-            <h3 className="text-2xl font-bold text-white mb-3">Snapreme</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <img
+                src="/assets/snapreme_icon.png"
+                alt="Snapreme"
+                className="w-8 h-8 object-contain"
+              />
+              <h3 className="text-2xl font-bold text-white">Snapreme</h3>
+            </div>
             <p className="text-slate-400 leading-relaxed">
-              Premium Snapchat creator marketplace.
+              Premium Snapchat creator platform.
             </p>
           </div>
 

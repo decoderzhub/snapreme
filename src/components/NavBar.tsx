@@ -72,7 +72,12 @@ export default function NavBar() {
     <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 border-b border-white/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex-shrink-0">
+          <Link to="/" className="flex-shrink-0 flex items-center gap-2">
+            <img
+              src="/assets/snapreme_icon.png"
+              alt="Snapreme"
+              className="w-8 h-8 object-contain"
+            />
             <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
               Snapreme
             </h1>
