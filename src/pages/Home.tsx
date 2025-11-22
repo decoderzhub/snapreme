@@ -50,14 +50,14 @@ export default function Home() {
               to={user ? '/network' : '/signup'}
               className="px-8 py-3 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium shadow-md hover:shadow-lg hover:brightness-110 transition-all"
             >
-              {user ? 'Browse Creators' : 'Create your free account'}
+              {user ? 'Browse creators' : 'Create account'}
             </Link>
 
             <Link
-              to="/apply"
+              to="/signup"
               className="px-8 py-3 rounded-full border border-slate-300 text-slate-700 font-medium hover:border-blue-500 hover:text-blue-600 bg-white/70 backdrop-blur-sm transition-all"
             >
-              Become a creator
+              Start creating
             </Link>
           </div>
 

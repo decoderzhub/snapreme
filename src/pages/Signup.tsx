@@ -53,7 +53,7 @@ export default function Signup() {
       setError(error.message);
       setLoading(false);
     } else {
-      navigate('/network');
+      navigate('/dashboard');
     }
   };
 
@@ -68,8 +68,8 @@ export default function Signup() {
               Snapreme
             </h1>
           </Link>
-          <h2 className="text-2xl font-bold text-slate-900">Join the Network</h2>
-          <p className="text-slate-600 mt-2">Create your creator profile and start connecting</p>
+          <h2 className="text-2xl font-bold text-slate-900">Create your Snapreme account</h2>
+          <p className="text-slate-600 mt-2">One account. One SnapremeCard. Start sharing premium story-style content with your fans.</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-[0_10px_40px_rgba(15,23,42,0.1)] p-8 border border-slate-100">

@@ -12,14 +12,11 @@ export default function ForCreators() {
   return (
     <section id="for-creators" className="py-20 md:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
           <div>
             <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 mb-6">
               Turn your close friends vibe into a real business.
             </h2>
-
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-6">
               Snapreme gives you a clean, simple way to share premium, story-style content with the fans who
               actually care — and get paid for it. No chasing brand managers, no complicated contracts.
@@ -37,12 +34,12 @@ export default function ForCreators() {
             </ul>
 
             <Link
-              to="/apply"
+              to="/signup"
               className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-gradient-to-r
                          from-blue-600 to-indigo-600 text-white text-sm font-medium shadow-md hover:shadow-lg
                          hover:brightness-110 transition-all"
             >
-              Apply as a creator
+              Create account
             </Link>
           </div>
 

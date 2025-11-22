@@ -4,13 +4,12 @@ import { DollarSign, FileText, Users, Sparkles, BarChart, MessageCircle } from '
 export default function ForCreatorsPage() {
   return (
     <div className="min-h-screen bg-white">
-
       <section className="relative py-20 bg-white text-center overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.16),transparent_60%)]" />
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6">
-            For Creators
+            For creators
           </h1>
 
           <p className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
@@ -20,12 +19,12 @@ export default function ForCreatorsPage() {
 
           <div className="mt-8">
             <Link
-              to="/apply"
+              to="/signup"
               className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-gradient-to-r
                          from-blue-600 to-indigo-600 text-white text-sm font-medium shadow-md hover:shadow-lg
                          hover:brightness-110 transition-all"
             >
-              Apply as a creator
+              Create account
             </Link>
           </div>
         </div>
@@ -55,24 +54,22 @@ export default function ForCreatorsPage() {
 
       <section className="py-16 bg-slate-50 border-t border-slate-100">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
           <div className="grid gap-10 lg:grid-cols-2 items-start">
-
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">How it works</h2>
 
               <ol className="space-y-4 text-sm sm:text-base text-slate-700">
                 <li>
-                  <span className="font-semibold text-slate-900">1. Apply and get verified.</span>
-                  Tell us who you are, what you create, and how you want to price your content.
+                  <span className="font-semibold text-slate-900">1. Create your Snapreme account.</span>{' '}
+                  Choose your handle and basic info so we can generate your SnapremeCard.
                 </li>
                 <li>
-                  <span className="font-semibold text-slate-900">2. Set up your premium space.</span>
-                  Create tiers, decide what's public vs premium, and schedule your first drops.
+                  <span className="font-semibold text-slate-900">2. Set up your premium space.</span>{' '}
+                  Decide what's free vs premium, choose your monthly price, and plan your first drops.
                 </li>
                 <li>
-                  <span className="font-semibold text-slate-900">3. Invite your fans.</span>
-                  Share your Snapreme link anywhere you already show up — stories, bios, group chats, or community platforms.
+                  <span className="font-semibold text-slate-900">3. Invite your fans.</span>{' '}
+                  Share your Snapreme link in your bio, stories, group chats, or community platforms.
                 </li>
               </ol>
             </div>
@@ -94,9 +91,7 @@ export default function ForCreatorsPage() {
                 description="No surprise fees. Transparent payout structure so you always know what you're taking home."
               />
             </div>
-
           </div>
-
         </div>
       </section>
     </div>

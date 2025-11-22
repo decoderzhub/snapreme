@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, User, Settings, Shield } from 'lucide-react';
+import { Menu, X, LogOut, User, Settings, Shield, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function NavBar() {
@@ -10,15 +10,13 @@ export default function NavBar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  console.log('NavBar - user:', user?.email, 'isAdmin:', isAdmin);
-
   const isHomePage = location.pathname === '/';
 
   const scrollToSection = (id: string) => {
     if (isHomePage) {
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
         setIsMenuOpen(false);
       }
     } else {
@@ -33,10 +31,10 @@ export default function NavBar() {
   };
 
   const navLinks = [
-    { label: 'Home', path: '/', type: 'link' },
-    { label: 'Creators', path: '/network', type: 'link' },
-    { label: 'For Creators', path: '/creators', type: 'link' },
-    { label: 'Apply', path: '/apply', type: 'link' },
+    { label: 'Home', type: 'link' as const, path: '/' },
+    { label: 'Explore creators', type: 'link' as const, path: '/network' },
+    { label: 'For creators', type: 'link' as const, path: '/creators' },
+    { label: 'Pricing', type: 'link' as const, path: '/pricing' },
   ];
 
   return (
@@ -54,158 +52,181 @@ export default function NavBar() {
               link.type === 'link' ? (
                 <Link
                   key={link.path}
-                  to={link.path!}
-                  className={`text-slate-600 hover:text-blue-600 transition-colors duration-200 font-medium ${
-                    location.pathname === link.path ? 'text-blue-600' : ''
+                  to={link.path}
+                  className={`text-sm font-medium transition-colors ${
+                    location.pathname === link.path
+                      ? 'text-blue-600'
+                      : 'text-slate-600 hover:text-blue-600'
                   }`}
                 >
                   {link.label}
                 </Link>
-              ) : (
-                <button
-                  key={link.id}
-                  onClick={() => scrollToSection(link.id!)}
-                  className="text-slate-600 hover:text-blue-600 transition-colors duration-200 font-medium"
-                >
-                  {link.label}
-                </button>
-              )
+              ) : null
             )}
 
-            {user ? (
+            {!user ? (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors"
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 text-white text-sm font-medium shadow-md hover:shadow-lg hover:brightness-110 transition-all"
+                >
+                  Create account
+                </Link>
+              </>
+            ) : (
               <div className="relative">
                 <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-medium hover:from-blue-700 hover:to-indigo-600 transition-all"
+                  onClick={() => setIsUserMenuOpen((v) => !v)}
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-900 text-white hover:bg-slate-800"
                 >
-                  <User size={18} />
-                  <span>Account</span>
+                  <User className="w-4 h-4" />
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-100 py-2">
-                    {isAdmin && (
-                      <Link
-                        to="/admin"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        className="w-full text-left px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2 font-medium"
-                      >
-                        <Shield size={16} />
-                        Admin Dashboard
-                      </Link>
-                    )}
-                    <Link
-                      to="/account/settings"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 text-sm">
+                    <button
+                      onClick={() => {
+                        navigate('/dashboard');
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
                     >
-                      <Settings size={16} />
-                      My Profile
-                    </Link>
+                      <LayoutDashboard className="w-4 h-4" />
+                      <span>Dashboard</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigate('/account/settings');
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Account settings</span>
+                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => {
+                          navigate('/admin');
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
+                      >
+                        <Shield className="w-4 h-4" />
+                        <span>Admin</span>
+                      </button>
+                    )}
                     <button
                       onClick={handleSignOut}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-red-600 hover:bg-red-50"
                     >
-                      <LogOut size={16} />
-                      Sign Out
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign out</span>
                     </button>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link
-                  to="/login"
-                  className="text-slate-600 hover:text-blue-600 transition-colors font-medium"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/signup"
-                  className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-medium hover:from-blue-700 hover:to-indigo-600 transition-all shadow-sm"
-                >
-                  Join Network
-                </Link>
-              </div>
             )}
           </div>
 
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsMenuOpen((v) => !v)}
+              className="inline-flex items-center justify-center p-2 rounded-md text-slate-700 hover:text-blue-600 hover:bg-slate-100"
+            >
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
       {isMenuOpen && (
         <div className="md:hidden border-t border-slate-100 bg-white">
-          <div className="px-4 py-3 space-y-2">
+          <div className="px-4 pt-2 pb-4 space-y-2">
             {navLinks.map((link) =>
               link.type === 'link' ? (
                 <Link
                   key={link.path}
-                  to={link.path!}
+                  to={link.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block w-full text-left px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium ${
-                    location.pathname === link.path ? 'text-blue-600 bg-blue-50' : ''
+                  className={`block px-3 py-2 rounded-md text-sm font-medium ${
+                    location.pathname === link.path
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   {link.label}
                 </Link>
-              ) : (
-                <button
-                  key={link.id}
-                  onClick={() => scrollToSection(link.id!)}
-                  className="block w-full text-left px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium"
-                >
-                  {link.label}
-                </button>
-              )
+              ) : null
             )}
 
-            {user ? (
-              <>
-                {isAdmin && (
-                  <Link
-                    to="/admin"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block w-full text-left px-3 py-2 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors font-medium"
-                  >
-                    Admin Dashboard
-                  </Link>
-                )}
-                <Link
-                  to="/account/settings"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="block w-full text-left px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium"
-                >
-                  My Profile
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  className="block w-full text-left px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors font-medium"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
+            {!user ? (
               <>
                 <Link
                   to="/login"
                   onClick={() => setIsMenuOpen(false)}
-                  className="block w-full text-left px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition-colors font-medium"
+                  className="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
-                  Sign In
+                  Log in
                 </Link>
                 <Link
                   to="/signup"
                   onClick={() => setIsMenuOpen(false)}
-                  className="block w-full text-center px-3 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-medium"
+                  className="block w-full text-center px-3 py-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-500 text-white text-sm font-medium"
                 >
-                  Join Network
+                  Create account
                 </Link>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    navigate('/dashboard');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Dashboard</span>
+                </button>
+                <button
+                  onClick={() => {
+                    navigate('/account/settings');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Account settings</span>
+                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      navigate('/admin');
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    <Shield className="w-4 h-4" />
+                    <span>Admin</span>
+                  </button>
+                )}
+                <button
+                  onClick={async () => {
+                    await handleSignOut();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign out</span>
+                </button>
               </>
             )}
           </div>
