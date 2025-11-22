@@ -6,8 +6,8 @@ import type { Creator } from '../types/database';
 import { Sparkles, Edit3, Eye, Trophy, TrendingUp, Star, Crown } from 'lucide-react';
 
 function calculateTierFromFollowers(followers: number): 'Rising' | 'Pro' | 'Elite' {
-  if (followers >= 100000) return 'Elite';
-  if (followers >= 10000) return 'Pro';
+  if (followers >= 1000000) return 'Elite';
+  if (followers >= 100000) return 'Pro';
   return 'Rising';
 }
 
@@ -65,9 +65,9 @@ export default function Dashboard() {
   const TierIcon = tierInfo.icon;
 
   const tiers = [
-    { name: 'Rising', min: 0, max: 9999, icon: TrendingUp },
-    { name: 'Pro', min: 10000, max: 99999, icon: Star },
-    { name: 'Elite', min: 100000, max: null, icon: Crown },
+    { name: 'Rising', min: 0, max: 99999, icon: TrendingUp },
+    { name: 'Pro', min: 100000, max: 999999, icon: Star },
+    { name: 'Elite', min: 1000000, max: null, icon: Crown },
   ];
 
   const currentFollowers = profile?.followers || 0;

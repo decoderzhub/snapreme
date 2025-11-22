@@ -38,8 +38,8 @@ const REGION_OPTIONS = [
 ];
 
 function calculateTierFromFollowers(followers: number): 'Rising' | 'Pro' | 'Elite' {
-  if (followers >= 100000) return 'Elite';
-  if (followers >= 10000) return 'Pro';
+  if (followers >= 1000000) return 'Elite';
+  if (followers >= 100000) return 'Pro';
   return 'Rising';
 }
 
