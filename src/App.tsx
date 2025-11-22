@@ -19,8 +19,6 @@ import AdminRoute from './components/AdminRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminCreators from './pages/admin/AdminCreators';
 import AdminVerifications from './pages/admin/AdminVerifications';
-import AdminCampaigns from './pages/admin/AdminCampaigns';
-import AdminCollabs from './pages/admin/AdminCollabs';
 import AdminReports from './pages/admin/AdminReports';
 import AdminSettings from './pages/admin/AdminSettings';
 
@@ -106,22 +104,6 @@ function App() {
           element={
             <AdminRoute>
               <AdminVerifications />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/campaigns"
-          element={
-            <AdminRoute>
-              <AdminCampaigns />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/collabs"
-          element={
-            <AdminRoute>
-              <AdminCollabs />
             </AdminRoute>
           }
         />

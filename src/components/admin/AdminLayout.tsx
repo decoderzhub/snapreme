@@ -4,8 +4,6 @@ import {
   LayoutDashboard,
   Users,
   ShieldCheck,
-  Megaphone,
-  MessageSquare,
   BarChart3,
   Settings,
   Menu,
@@ -27,8 +25,6 @@ const navItems: NavItem[] = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/admin/creators', label: 'Creators', icon: Users },
   { path: '/admin/verifications', label: 'Pending Verification', icon: ShieldCheck },
-  { path: '/admin/campaigns', label: 'Brand Campaigns', icon: Megaphone },
-  { path: '/admin/collabs', label: 'Collab Requests', icon: MessageSquare },
   { path: '/admin/reports', label: 'Reports & Analytics', icon: BarChart3 },
   { path: '/admin/settings', label: 'System Settings', icon: Settings },
 ];

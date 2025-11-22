@@ -3,12 +3,11 @@ import { Link } from 'react-router-dom';
 import {
   Users,
   ShieldCheck,
-  Megaphone,
   TrendingUp,
-  Clock,
   CheckCircle2,
-  AlertCircle,
   Loader,
+  Eye,
+  Heart,
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import { getAdminStats } from '../../lib/adminHelpers';
@@ -97,37 +96,29 @@ export default function AdminDashboard() {
             </p>
           </Link>
 
-          <Link
-            to="/admin/campaigns"
-            className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-shadow"
-          >
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Megaphone className="w-6 h-6 text-purple-600" />
+                <Eye className="w-6 h-6 text-purple-600" />
               </div>
               <TrendingUp className="w-5 h-5 text-green-500" />
             </div>
-            <p className="text-sm font-medium text-slate-600 mb-1">Live Campaigns</p>
-            <p className="text-3xl font-bold text-slate-900">{stats.liveCampaigns}</p>
-            <p className="text-xs text-slate-500 mt-2">{stats.pendingCampaigns} pending approval</p>
-          </Link>
+            <p className="text-sm font-medium text-slate-600 mb-1">Total Profile Views</p>
+            <p className="text-3xl font-bold text-slate-900">{stats.totalProfileViews || 0}</p>
+            <p className="text-xs text-slate-500 mt-2">Across all creators</p>
+          </div>
 
-          <Link
-            to="/admin/collabs"
-            className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-shadow"
-          >
+          <div className="bg-white rounded-xl border border-slate-200 p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-orange-600" />
+              <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+                <Heart className="w-6 h-6 text-pink-600" />
               </div>
-              <AlertCircle className="w-5 h-5 text-orange-500" />
+              <Heart className="w-5 h-5 text-pink-500" />
             </div>
-            <p className="text-sm font-medium text-slate-600 mb-1">Pending Requests</p>
-            <p className="text-3xl font-bold text-slate-900">{stats.pendingRequests}</p>
-            <p className="text-xs text-slate-500 mt-2">
-              {stats.totalBookingRequests} total requests
-            </p>
-          </Link>
+            <p className="text-sm font-medium text-slate-600 mb-1">Total Favorites</p>
+            <p className="text-3xl font-bold text-slate-900">{stats.totalFavorites || 0}</p>
+            <p className="text-xs text-slate-500 mt-2">All favorites combined</p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -152,21 +143,21 @@ export default function AdminDashboard() {
           </div>
 
           <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Collaboration Activity</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-4">Platform Activity</h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                 <div>
-                  <p className="font-semibold text-slate-900">Completed</p>
-                  <p className="text-sm text-slate-600">Successful collaborations</p>
+                  <p className="font-semibold text-slate-900">Active Subscriptions</p>
+                  <p className="text-sm text-slate-600">Currently active</p>
                 </div>
-                <p className="text-2xl font-bold text-green-600">{stats.completedCollaborations}</p>
+                <p className="text-2xl font-bold text-green-600">{stats.activeSubscriptions || 0}</p>
               </div>
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
                 <div>
-                  <p className="font-semibold text-slate-900">Pending</p>
-                  <p className="text-sm text-slate-600">Awaiting response</p>
+                  <p className="font-semibold text-slate-900">Onboarding Complete</p>
+                  <p className="text-sm text-slate-600">Ready for network</p>
                 </div>
-                <p className="text-2xl font-bold text-orange-600">{stats.pendingRequests}</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.onboardingComplete || 0}</p>
               </div>
             </div>
           </div>
@@ -174,7 +165,7 @@ export default function AdminDashboard() {
 
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 p-6">
           <h2 className="text-xl font-bold text-slate-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link
               to="/admin/verifications"
               className="flex items-center gap-3 p-4 bg-white rounded-lg hover:shadow-md transition-shadow"
@@ -188,13 +179,6 @@ export default function AdminDashboard() {
             >
               <Users className="w-5 h-5 text-blue-600" />
               <span className="font-medium text-slate-900">Manage Creators</span>
-            </Link>
-            <Link
-              to="/admin/campaigns"
-              className="flex items-center gap-3 p-4 bg-white rounded-lg hover:shadow-md transition-shadow"
-            >
-              <Megaphone className="w-5 h-5 text-blue-600" />
-              <span className="font-medium text-slate-900">Manage Campaigns</span>
             </Link>
           </div>
         </div>

@@ -3,23 +3,23 @@ import { Creator, Campaign, AdminStats } from '../types/database';
 
 export async function getAdminStats(): Promise<{ stats: AdminStats | null; error: Error | null }> {
   try {
-    const [creatorsResult, campaignsResult, bookingRequestsResult] = await Promise.all([
-      supabase.from('creators').select('id, verification_status, created_at'),
-      supabase.from('campaigns').select('id, is_active'),
-      supabase.from('booking_requests').select('id, status'),
+    const [creatorsResult, subscriptionsResult, favoritesResult] = await Promise.all([
+      supabase.from('creators').select('id, verification_status, created_at, profile_views, onboarding_complete'),
+      supabase.from('subscriptions').select('id, is_active'),
+      supabase.from('favorites').select('id'),
     ]);
 
     if (creatorsResult.error) throw creatorsResult.error;
-    if (campaignsResult.error) throw campaignsResult.error;
-    if (bookingRequestsResult.error) throw bookingRequestsResult.error;
 
     const creators = creatorsResult.data || [];
-    const campaigns = campaignsResult.data || [];
-    const bookingRequests = bookingRequestsResult.data || [];
+    const subscriptions = subscriptionsResult.data || [];
+    const favorites = favoritesResult.data || [];
 
     const now = new Date();
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const totalProfileViews = creators.reduce((sum, c) => sum + (c.profile_views || 0), 0);
 
     const stats: AdminStats = {
       totalCreators: creators.length,
@@ -28,11 +28,15 @@ export async function getAdminStats(): Promise<{ stats: AdminStats | null; error
       newSignups24h: creators.filter((c) => new Date(c.created_at) > oneDayAgo).length,
       newSignups7d: creators.filter((c) => new Date(c.created_at) > sevenDaysAgo).length,
       activeBrands: 0,
-      liveCampaigns: campaigns.filter((c) => c.is_active).length,
+      liveCampaigns: 0,
       pendingCampaigns: 0,
-      totalBookingRequests: bookingRequests.length,
-      completedCollaborations: bookingRequests.filter((r) => r.status === 'accepted').length,
-      pendingRequests: bookingRequests.filter((r) => r.status === 'pending').length,
+      totalBookingRequests: 0,
+      completedCollaborations: 0,
+      pendingRequests: 0,
+      totalProfileViews,
+      totalFavorites: favorites.length,
+      activeSubscriptions: subscriptions.filter((s) => s.is_active).length,
+      onboardingComplete: creators.filter((c) => c.onboarding_complete).length,
     };
 
     return { stats, error: null };

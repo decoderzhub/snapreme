@@ -242,9 +242,11 @@ export default function Network() {
                         onClick={() => setSelectedCreator(creator)}
                         className="flex items-center gap-3 flex-1 text-left"
                       >
-                        <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center">
-                          <Users className="w-4 h-4 text-blue-600" />
-                        </div>
+                        <img
+                          src={creator.avatar_url || (creator as any).card_image_url || '/assets/snapreme-default-banner.svg'}
+                          alt={creator.name}
+                          className="w-7 h-7 rounded-full object-cover"
+                        />
                         <div className="flex-1">
                           <p className="text-xs font-semibold text-slate-900 line-clamp-1">
                             {creator.display_name || creator.name}
