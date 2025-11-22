@@ -517,20 +517,44 @@ export default function AccountSettings() {
               />
             </div>
             <div className="mt-6">
-              <ImageUpload
-                currentImage={formData.snapcode_url}
-                onImageSelect={handleSnapcodeUpload}
-                onImageRemove={() => handleInputChange('snapcode_url', null)}
-                label="Snapcode Image"
-                aspectRatio="aspect-square"
-                uploading={uploadingSnapcode}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ImageUpload
+                  currentImage={formData.snapcode_url}
+                  onImageSelect={handleSnapcodeUpload}
+                  onImageRemove={() => handleInputChange('snapcode_url', null)}
+                  label="Snapcode Image"
+                  aspectRatio="aspect-square"
+                  uploading={uploadingSnapcode}
+                />
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-900 mb-3">
+                    Example Snapcode
+                  </label>
+                  <div className="aspect-square bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 rounded-lg p-4 flex items-center justify-center">
+                    <div className="bg-yellow-400 rounded-2xl p-6 w-full h-full flex flex-col items-center justify-center border-4 border-black">
+                      <div className="bg-white w-3/4 h-3/4 rounded-xl flex items-center justify-center mb-3">
+                        <div className="text-center">
+                          <div className="w-20 h-20 bg-slate-800 rounded-full mx-auto mb-2"></div>
+                          <div className="space-y-1">
+                            <div className="h-2 bg-slate-300 rounded w-16 mx-auto"></div>
+                            <div className="h-2 bg-slate-300 rounded w-12 mx-auto"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-black text-sm font-bold">Your Name</p>
+                      <p className="text-black text-xs">@username</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
                 <p className="text-sm text-blue-900 font-medium mb-1">Pro Tip: How to get your Snapcode</p>
                 <p className="text-xs text-blue-700">
                   Open Snapchat, go to your profile, and tap the <span className="font-semibold">Share</span> icon in the top right.
                   You'll see your Snap QR code with a "Share" button. Tap it to download the image to your photos,
-                  then upload it here for your profile.
+                  then upload it here for your profile. It should look similar to the example on the right.
                 </p>
               </div>
             </div>
