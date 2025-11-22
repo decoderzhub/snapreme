@@ -40,6 +40,7 @@ export const demoCreators: Creator[] = [
     category: 'Fashion',
     stripe_connect_id: undefined,
     is_stripe_connected: true,
+    onboarding_complete: true,
   },
   {
     id: 'demo-2',
@@ -80,6 +81,7 @@ export const demoCreators: Creator[] = [
     category: 'Lifestyle',
     stripe_connect_id: undefined,
     is_stripe_connected: true,
+    onboarding_complete: true,
   },
   {
     id: 'demo-3',
@@ -120,6 +122,7 @@ export const demoCreators: Creator[] = [
     category: 'Beauty',
     stripe_connect_id: undefined,
     is_stripe_connected: true,
+    onboarding_complete: true,
   },
   {
     id: 'demo-4',
@@ -160,6 +163,7 @@ export const demoCreators: Creator[] = [
     category: 'Wellness',
     stripe_connect_id: undefined,
     is_stripe_connected: true,
+    onboarding_complete: true,
   },
   {
     id: 'demo-5',
@@ -200,6 +204,7 @@ export const demoCreators: Creator[] = [
     category: 'Travel',
     stripe_connect_id: undefined,
     is_stripe_connected: true,
+    onboarding_complete: true,
   },
   {
     id: 'demo-6',
@@ -240,5 +245,6 @@ export const demoCreators: Creator[] = [
     category: 'Lifestyle',
     stripe_connect_id: undefined,
     is_stripe_connected: true,
+    onboarding_complete: true,
   },
 ];
