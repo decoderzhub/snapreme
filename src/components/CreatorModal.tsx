@@ -20,6 +20,7 @@ export default function CreatorModal({ creator, onClose }: Props) {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const cover = creator.card_image_url || creator.cover_url || '/assets/snapreme-default-banner.svg';
 
@@ -34,6 +35,21 @@ export default function CreatorModal({ creator, onClose }: Props) {
         return;
       }
 
+      // Check if user is admin
+      const { data: profile } = await supabase
+        .from('creators')
+        .select('is_admin')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (profile?.is_admin) {
+        setIsAdmin(true);
+        setIsUnlocked(true);
+        setCheckingSubscription(false);
+        return;
+      }
+
+      // Check subscription status
       const { data } = await supabase
         .from('subscriptions')
         .select('is_active')
@@ -207,9 +223,11 @@ export default function CreatorModal({ creator, onClose }: Props) {
               )}
             </button>
           ) : (
-            <button className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-full shadow-md font-semibold">
+            <button className={`w-full flex items-center justify-center gap-2 text-white py-3 rounded-full shadow-md font-semibold ${
+              isAdmin ? 'bg-purple-600' : 'bg-green-600'
+            }`}>
               <MessageCircle className="w-4 h-4" />
-              Message on Snapchat
+              {isAdmin ? 'Admin Access' : 'Message on Snapchat'}
             </button>
           )}
 

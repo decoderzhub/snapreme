@@ -531,20 +531,12 @@ export default function AccountSettings() {
                   <label className="block text-sm font-semibold text-slate-900 mb-3">
                     Example Snapcode
                   </label>
-                  <div className="aspect-square bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 rounded-lg p-4 flex items-center justify-center">
-                    <div className="bg-yellow-400 rounded-2xl p-6 w-full h-full flex flex-col items-center justify-center border-4 border-black">
-                      <div className="bg-white w-3/4 h-3/4 rounded-xl flex items-center justify-center mb-3">
-                        <div className="text-center">
-                          <div className="w-20 h-20 bg-slate-800 rounded-full mx-auto mb-2"></div>
-                          <div className="space-y-1">
-                            <div className="h-2 bg-slate-300 rounded w-16 mx-auto"></div>
-                            <div className="h-2 bg-slate-300 rounded w-12 mx-auto"></div>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-black text-sm font-bold">Your Name</p>
-                      <p className="text-black text-xs">@username</p>
-                    </div>
+                  <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center">
+                    <img
+                      src="/assets/example-snapcode.png"
+                      alt="Example Snapcode"
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                 </div>
               </div>
