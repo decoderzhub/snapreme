@@ -866,52 +866,41 @@ export default function AccountSettings() {
             </div>
           </section>
 
-            <div className="flex items-center justify-between gap-4 bg-white rounded-xl shadow-lg border border-slate-100 p-4">
+            <div className="flex items-center justify-end gap-4 bg-white rounded-xl shadow-lg border border-slate-100 p-4">
               <button
                 type="button"
-                onClick={() => navigate(`/creator/${profile.handle.replace('@', '')}`)}
-                className="flex items-center gap-2 px-6 py-3 text-slate-700 font-semibold hover:text-slate-900 transition-colors"
+                onClick={() => {
+                  if (hasUnsavedChanges) {
+                    if (confirm('Discard unsaved changes?')) {
+                      loadProfile();
+                      setHasUnsavedChanges(false);
+                    }
+                  } else {
+                    navigate(-1);
+                  }
+                }}
+                className="px-6 py-3 text-slate-600 font-semibold hover:text-slate-900 transition-colors"
               >
-                <Eye className="w-5 h-5" />
-                Preview Profile
+                Cancel
               </button>
 
-              <div className="flex items-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (hasUnsavedChanges) {
-                      if (confirm('Discard unsaved changes?')) {
-                        loadProfile();
-                        setHasUnsavedChanges(false);
-                      }
-                    } else {
-                      navigate(-1);
-                    }
-                  }}
-                  className="px-6 py-3 text-slate-600 font-semibold hover:text-slate-900 transition-colors"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  onClick={handleSave}
-                  disabled={saving || !hasUnsavedChanges}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? (
-                    <>
-                      <Loader className="w-5 h-5 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-5 h-5" />
-                      Save Changes
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                onClick={handleSave}
+                disabled={saving || !hasUnsavedChanges}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-5 h-5" />
+                    Save Changes
+                  </>
+                )}
+              </button>
             </div>
           </div>
 

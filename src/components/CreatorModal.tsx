@@ -59,7 +59,7 @@ export default function CreatorModal({ creator, onClose }: Props) {
 
   const handleUnlock = async () => {
     if (!user) {
-      navigate(`/signup?next=${encodeURIComponent(`/creator/${creator.handle}`)}`);
+      navigate('/signup');
       return;
     }
 

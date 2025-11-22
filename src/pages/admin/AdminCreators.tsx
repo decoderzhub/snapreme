@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   Search,
   Filter,
-  Eye,
   Ban,
   Trash2,
   CheckCircle,
@@ -286,13 +284,6 @@ export default function AdminCreators() {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
-                          <Link
-                            to={`/creator/${creator.handle.replace('@', '')}`}
-                            className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="View Profile"
-                          >
-                            <Eye size={18} />
-                          </Link>
                           {creator.account_status === 'suspended' ? (
                             <button
                               onClick={() => handleActivate(creator)}

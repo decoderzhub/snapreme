@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getCurrentUserProfile } from '../lib/profileHelpers';
 import type { Creator } from '../types/database';
-import { Sparkles, Edit3, Eye, Trophy, TrendingUp, Star, Crown } from 'lucide-react';
+import { Sparkles, Edit3, Trophy, TrendingUp, Star, Crown } from 'lucide-react';
 
 function calculateTierFromFollowers(followers: number): 'Rising' | 'Pro' | 'Elite' {
   if (followers >= 1000000) return 'Elite';
@@ -201,13 +201,6 @@ export default function Dashboard() {
                 </p>
               </div>
 
-              <Link
-                to={`/creator/${handleSlug}`}
-                className="inline-flex items-center justify-center px-4 py-2 rounded-full border border-slate-300 text-xs font-medium text-slate-800 hover:border-blue-500 hover:text-blue-600 transition-colors"
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                View public profile
-              </Link>
             </div>
 
             <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-6">

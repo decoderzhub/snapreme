@@ -5,7 +5,6 @@ import Home from './pages/Home';
 import Network from './pages/Network';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import CreatorProfile from './pages/CreatorProfile';
 import ForBrands from './pages/ForBrands';
 import ForCreatorsPage from './pages/ForCreatorsPage';
 import NewBrief from './pages/NewBrief';
@@ -62,7 +61,6 @@ function App() {
           }
         />
 
-        <Route path="/creator/:handle" element={<CreatorProfile />} />
         <Route path="/brands" element={<ForBrands />} />
         <Route path="/creators" element={<ForCreatorsPage />} />
         <Route path="/briefs/new" element={<NewBrief />} />
