@@ -29,6 +29,12 @@ export interface Creator {
   updated_at: string;
   niches?: string[];
   offers?: CreatorOffer[];
+  is_priority?: boolean;
+  profile_views?: number;
+  subscribers?: number;
+  subscription_price?: number;
+  posts?: number;
+  category?: string;
 }
 
 export interface CreatorNiche {
