@@ -1,5 +1,8 @@
-import { Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+import { Creator } from '../types/database';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -7,8 +10,32 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
+  const location = useLocation();
+  const [creatorProfile, setCreatorProfile] = useState<Creator | null>(null);
+  const [checkingCreator, setCheckingCreator] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    async function loadCreatorProfile() {
+      if (!user) {
+        setCreatorProfile(null);
+        setCheckingCreator(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from('creators')
+        .select('id, onboarding_complete')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      setCreatorProfile((data as Creator) || null);
+      setCheckingCreator(false);
+    }
+
+    loadCreatorProfile();
+  }, [user]);
+
+  if (loading || checkingCreator) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50/60 to-transparent">
         <div className="text-center">
@@ -21,6 +48,17 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  const needsOnboarding =
+    creatorProfile && creatorProfile.onboarding_complete === false;
+
+  if (
+    needsOnboarding &&
+    location.pathname !== '/onboarding' &&
+    location.pathname !== '/account/settings'
+  ) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;

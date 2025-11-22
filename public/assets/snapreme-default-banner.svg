@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="50%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="600" fill="url(#g)" />
+  <circle cx="1300" cy="200" r="180" fill="#2563eb" fill-opacity="0.35" />
+  <circle cx="1150" cy="380" r="140" fill="#1d4ed8" fill-opacity="0.25" />
+  <text x="120" y="460" fill="#e0f2fe" font-family="'Inter', 'Helvetica', 'Arial', sans-serif" font-size="96" font-weight="700" opacity="0.85">
+    Snapreme
+  </text>
+  <text x="120" y="525" fill="#bfdbfe" font-family="'Inter', 'Helvetica', 'Arial', sans-serif" font-size="32" font-weight="500" opacity="0.9">
+    Premium creator network
+  </text>
+</svg>

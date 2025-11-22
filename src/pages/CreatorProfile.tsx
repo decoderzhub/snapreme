@@ -104,7 +104,11 @@ export default function CreatorProfile() {
       const res = await fetch('/api/payments/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fanId: user.id, creatorId: (creator as any).id }),
+        body: JSON.stringify({
+          fanId: user.id,
+          creatorId: (creator as any).id,
+          cardImage: (creator as any).card_image_url,
+        }),
       });
 
       const json = await res.json();
@@ -132,7 +136,11 @@ export default function CreatorProfile() {
         .limit(6);
 
       if (!error && data) {
-        setRelatedCreators(data as Creator[]);
+        const completeProfiles = (data as Creator[]).filter(
+          (rc) => rc.avatar_url && (rc as any).card_image_url && (rc as any).onboarding_complete
+        );
+
+        setRelatedCreators(completeProfiles);
       }
     }
 
@@ -171,13 +179,30 @@ export default function CreatorProfile() {
 
   const isOwnProfile = user?.id === (creator as any).user_id || user?.id === (creator as any).id;
 
-  const coverUrl =
-    creator.cover_url ||
-    'https://images.pexels.com/photos/3348748/pexels-photo-3348748.jpeg?auto=compress&cs=tinysrgb&w=1200';
+  const coverUrl = creator.cover_url || '/assets/snapreme-default-banner.svg';
+  const avatarUrl = creator.avatar_url;
+  const cardImageUrl = (creator as any).card_image_url;
 
-  const avatarUrl =
-    creator.avatar_url ||
-    'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=400';
+  if (!avatarUrl || !cardImageUrl) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-2">Profile Setup Incomplete</h2>
+          <p className="text-slate-600 mb-4">
+            This creator has not finished setting up their Snapreme profile.
+          </p>
+          {isOwnProfile && (
+            <Link
+              to="/onboarding"
+              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-full font-semibold"
+            >
+              Complete Setup
+            </Link>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const displayName = (creator as any).display_name || (creator as any).name || 'Creator';
   const safeHandle = (creator as any).handle?.replace(/^@/, '') || '';
@@ -430,11 +455,11 @@ export default function CreatorProfile() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {relatedCreators.map((rc) => {
-                const rcCover =
-                  (rc as any).cover_url ||
-                  'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=800';
+                const rcCover = (rc as any).card_image_url;
                 const rcName = (rc as any).display_name || (rc as any).name;
                 const rcHandle = ((rc as any).handle || '').replace(/^@/, '');
+
+                if (!rcCover || !(rc as any).avatar_url) return null;
 
                 return (
                   <Link

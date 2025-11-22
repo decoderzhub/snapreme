@@ -9,7 +9,6 @@ import {
   updateUserProfile,
   uploadProfileImage,
   deleteProfileImage,
-  updateUserEmail,
   updateUserPassword,
   ProfileUpdateData,
 } from '../lib/profileHelpers';
@@ -38,7 +37,11 @@ const REGION_OPTIONS = [
   'Middle East',
 ];
 
-const TIER_OPTIONS: Array<'Rising' | 'Pro' | 'Elite'> = ['Rising', 'Pro', 'Elite'];
+function calculateTierFromFollowers(followers: number): 'Rising' | 'Pro' | 'Elite' {
+  if (followers >= 100000) return 'Elite';
+  if (followers >= 10000) return 'Pro';
+  return 'Rising';
+}
 
 export default function AccountSettings() {
   const { user } = useAuth();
@@ -46,6 +49,7 @@ export default function AccountSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingCardImage, setUploadingCardImage] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingSnapcode, setUploadingSnapcode] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -70,17 +74,19 @@ export default function AccountSettings() {
     content_types: [],
     top_regions: [],
     avatar_url: null,
+    card_image_url: null,
     cover_url: null,
     snapcode_url: null,
   });
 
   const [niches, setNiches] = useState<string[]>([]);
-  const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [contentTypeInput, setContentTypeInput] = useState('');
   const [topRegionInput, setTopRegionInput] = useState('');
+
+  const derivedTier = calculateTierFromFollowers(formData.followers || 0);
 
   useEffect(() => {
     loadProfile();
@@ -110,6 +116,8 @@ export default function AccountSettings() {
 
     if (profileData) {
       setProfile(profileData);
+      const followers = profileData.followers || 0;
+
       setFormData({
         name: profileData.name || '',
         display_name: profileData.display_name || '',
@@ -118,20 +126,20 @@ export default function AccountSettings() {
         short_bio: profileData.short_bio || '',
         about: profileData.about || '',
         region: profileData.region || '',
-        followers: profileData.followers || 0,
+        followers,
         engagement_rate: profileData.engagement_rate || 0,
         starting_rate: profileData.starting_rate || 0,
         starting_rate_label: profileData.starting_rate_label || '',
         avg_story_views: profileData.avg_story_views || 0,
-        tier: profileData.tier || 'Rising',
+        tier: calculateTierFromFollowers(followers),
         content_types: profileData.content_types || [],
         top_regions: profileData.top_regions || [],
         avatar_url: profileData.avatar_url,
+        card_image_url: (profileData as any).card_image_url || null,
         cover_url: profileData.cover_url,
         snapcode_url: profileData.snapcode_url,
       });
       setNiches(profileData.niches || []);
-      setNewEmail(user?.email || '');
     }
 
     setLoading(false);
@@ -159,6 +167,29 @@ export default function AccountSettings() {
     }
 
     setUploadingAvatar(false);
+  };
+
+  const handleCardImageUpload = async (file: File) => {
+    if (!user) return;
+
+    setUploadingCardImage(true);
+    if (formData.card_image_url) {
+      await deleteProfileImage(formData.card_image_url);
+    }
+
+    const { url, error: uploadError } = await uploadProfileImage(
+      file,
+      user.id,
+      'card'
+    );
+
+    if (uploadError) {
+      setError(uploadError.message);
+    } else if (url) {
+      handleInputChange('card_image_url', url);
+    }
+
+    setUploadingCardImage(false);
   };
 
   const handleCoverUpload = async (file: File) => {
@@ -240,21 +271,41 @@ export default function AccountSettings() {
       return;
     }
 
-    const { error: updateError } = await updateUserProfile(user.id, formData, niches);
+    const forbidden = /snap(chat)?|sc[:\s]|add me on/i;
+    const fieldsToCheck = [
+      formData.bio,
+      formData.short_bio,
+      formData.display_name,
+      formData.handle,
+      formData.about,
+    ];
+
+    if (fieldsToCheck.some((field) => field && forbidden.test(field))) {
+      setError(
+        'Snapchat usernames and direct mentions are not allowed. Fans unlock your Snapcode through Snapreme.'
+      );
+      setSaving(false);
+      return;
+    }
+
+    if (!formData.avatar_url || !formData.card_image_url || !formData.cover_url) {
+      setError('You must upload a profile avatar, card image, and banner to continue.');
+      setSaving(false);
+      return;
+    }
+
+    const derivedTierValue = calculateTierFromFollowers(formData.followers || 0);
+
+    const { error: updateError } = await updateUserProfile(
+      user.id,
+      { ...formData, tier: derivedTierValue, onboarding_complete: true },
+      niches
+    );
 
     if (updateError) {
       setError(updateError.message);
       setSaving(false);
       return;
-    }
-
-    if (newEmail && newEmail !== user.email) {
-      const { error: emailError } = await updateUserEmail(newEmail);
-      if (emailError) {
-        setError(`Profile updated but email change failed: ${emailError.message}`);
-        setSaving(false);
-        return;
-      }
     }
 
     if (newPassword) {
@@ -297,11 +348,11 @@ export default function AccountSettings() {
       formData.bio,
       formData.short_bio,
       formData.avatar_url,
+      formData.card_image_url,
       formData.cover_url,
       formData.region,
       niches.length > 0,
       formData.content_types && formData.content_types.length > 0,
-      formData.starting_rate_label,
     ];
 
     const completed = fields.filter(Boolean).length;
@@ -379,7 +430,7 @@ export default function AccountSettings() {
         <div className="space-y-8">
           <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Profile Pictures</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <ImageUpload
                 currentImage={formData.avatar_url}
                 onImageSelect={handleAvatarUpload}
@@ -387,6 +438,14 @@ export default function AccountSettings() {
                 label="Avatar Image"
                 aspectRatio="aspect-square"
                 uploading={uploadingAvatar}
+              />
+              <ImageUpload
+                currentImage={formData.card_image_url}
+                onImageSelect={handleCardImageUpload}
+                onImageRemove={() => handleInputChange('card_image_url', null)}
+                label="Card Image"
+                aspectRatio="aspect-[4/3]"
+                uploading={uploadingCardImage}
               />
               <ImageUpload
                 currentImage={formData.cover_url}
@@ -434,19 +493,14 @@ export default function AccountSettings() {
               />
               <div>
                 <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Creator Tier
+                  Creator Tier (auto-assigned)
                 </label>
-                <select
-                  value={formData.tier}
-                  onChange={(e) => handleInputChange('tier', e.target.value as 'Rising' | 'Pro' | 'Elite')}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {TIER_OPTIONS.map((tier) => (
-                    <option key={tier} value={tier}>
-                      {tier}
-                    </option>
-                  ))}
-                </select>
+                <div className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-700">
+                  {derivedTier}
+                  <span className="ml-2 text-xs text-slate-500">
+                    based on total fans
+                  </span>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-900 mb-2">
@@ -635,45 +689,28 @@ export default function AccountSettings() {
           </section>
 
           <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Stats & Pricing</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field
-                label="Followers"
-                type="number"
-                value={formData.followers?.toString() || '0'}
-                onChange={(e) => handleInputChange('followers', parseInt(e.target.value) || 0)}
-                placeholder="100000"
-              />
-              <Field
-                label="Engagement Rate (%)"
-                type="number"
-                step="0.01"
-                value={formData.engagement_rate?.toString() || '0'}
-                onChange={(e) => handleInputChange('engagement_rate', parseFloat(e.target.value) || 0)}
-                placeholder="5.5"
-              />
-              <Field
-                label="Average Story Views"
-                type="number"
-                value={formData.avg_story_views?.toString() || '0'}
-                onChange={(e) => handleInputChange('avg_story_views', parseInt(e.target.value) || 0)}
-                placeholder="50000"
-              />
-              <Field
-                label="Starting Rate (in cents)"
-                type="number"
-                value={formData.starting_rate?.toString() || '0'}
-                onChange={(e) => handleInputChange('starting_rate', parseInt(e.target.value) || 0)}
-                placeholder="50000"
-                helperText="100 cents = $1.00"
-              />
-              <div className="md:col-span-2">
-                <Field
-                  label="Starting Rate Label"
-                  value={formData.starting_rate_label || ''}
-                  onChange={(e) => handleInputChange('starting_rate_label', e.target.value)}
-                  placeholder="e.g., $500 / Story Post"
-                />
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Audience Stats</h2>
+            <p className="text-sm text-slate-600 mb-6">
+              These numbers are generated from fans who follow and view your profile.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 border border-slate-100 rounded-xl bg-slate-50">
+                <p className="text-sm text-slate-500">Fans</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {profile?.followers ?? 0}
+                </p>
+              </div>
+              <div className="p-4 border border-slate-100 rounded-xl bg-slate-50">
+                <p className="text-sm text-slate-500">Profile Views</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {profile?.profile_views ?? 0}
+                </p>
+              </div>
+              <div className="p-4 border border-slate-100 rounded-xl bg-slate-50">
+                <p className="text-sm text-slate-500">Subscribers</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {profile?.subscribers ?? 0}
+                </p>
               </div>
             </div>
           </section>
@@ -684,13 +721,17 @@ export default function AccountSettings() {
               Account Security
             </h2>
             <div className="space-y-4">
-              <Field
-                label="Email Address"
-                type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                placeholder="your@email.com"
-              />
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                  Email Address
+                </label>
+                <div className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-700">
+                  {user?.email}
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  Email is locked because it is used for account verification.
+                </p>
+              </div>
 
               {!showPasswordSection ? (
                 <button

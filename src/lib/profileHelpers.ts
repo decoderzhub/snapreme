@@ -16,16 +16,18 @@ export interface ProfileUpdateData {
   avg_story_views?: number;
   content_types?: string[];
   top_regions?: string[];
-  avatar_url?: string;
-  cover_url?: string;
-  snapcode_url?: string;
+  avatar_url?: string | null;
+  cover_url?: string | null;
+  card_image_url?: string | null;
+  snapcode_url?: string | null;
   tier?: 'Rising' | 'Pro' | 'Elite';
+  onboarding_complete?: boolean;
 }
 
 export async function uploadProfileImage(
   file: File,
   userId: string,
-  type: 'avatar' | 'cover' | 'snapcode'
+  type: 'avatar' | 'cover' | 'snapcode' | 'card'
 ): Promise<{ url: string | null; error: Error | null }> {
   try {
     const fileExt = file.name.split('.').pop();

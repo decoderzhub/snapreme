@@ -11,6 +11,8 @@ interface Props {
 }
 
 export default function CreatorModal({ creator, onClose }: Props) {
+  if (!creator.card_image_url || !creator.avatar_url) return null;
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -19,14 +21,11 @@ export default function CreatorModal({ creator, onClose }: Props) {
   const [unlocking, setUnlocking] = useState(false);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
 
-  const cover =
-    creator.cover_url ||
-    creator.avatar_url ||
-    'https://images.pexels.com/photos/3348748/pexels-photo-3348748.jpeg';
+  const cover = creator.card_image_url || creator.cover_url || '/assets/snapreme-default-banner.svg';
 
   const price = creator.subscription_price || 5;
 
-  const snapcodeUrl = creator.snapcode_url || 'https://images.pexels.com/photos/6858618/pexels-photo-6858618.jpeg?auto=compress&cs=tinysrgb&w=400';
+  const snapcodeUrl = creator.snapcode_url;
 
   useEffect(() => {
     async function checkSubscription() {
@@ -164,14 +163,20 @@ export default function CreatorModal({ creator, onClose }: Props) {
             </div>
           )}
 
-          <div className="relative bg-slate-50 rounded-2xl p-4 flex items-center justify-center">
-            <img
-              src={snapcodeUrl}
-              alt="Snapcode"
-              className={`w-32 h-32 object-contain transition-all duration-300 ${
-                isUnlocked ? '' : 'blur-xl'
-              }`}
-            />
+          <div className="relative bg-slate-50 rounded-2xl p-4 flex items-center justify-center min-h-[160px]">
+            {snapcodeUrl ? (
+              <img
+                src={snapcodeUrl}
+                alt="Snapcode"
+                className={`w-32 h-32 object-contain transition-all duration-300 ${
+                  isUnlocked ? '' : 'blur-xl'
+                }`}
+              />
+            ) : (
+              <div className="text-xs text-slate-500 text-center">
+                Snapcode not uploaded yet.
+              </div>
+            )}
             {!isUnlocked && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Lock className="w-8 h-8 text-slate-400" />
@@ -208,7 +213,7 @@ export default function CreatorModal({ creator, onClose }: Props) {
             </button>
           )}
 
-          {isUnlocked && (
+          {isUnlocked && snapcodeUrl && (
             <p className="text-xs text-center text-slate-500">
               Scan the Snapcode above to add {creator.display_name || creator.name} on Snapchat
             </p>

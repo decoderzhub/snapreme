@@ -9,23 +9,32 @@ export default function NavBar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [isStripeConnected, setIsStripeConnected] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const { user, isAdmin, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsCreator(false);
+      setIsStripeConnected(false);
+      setNeedsOnboarding(false);
+      return;
+    }
 
     async function checkCreatorStatus() {
       const { data } = await supabase
         .from('creators')
-        .select('id, is_stripe_connected')
+        .select('id, is_stripe_connected, onboarding_complete')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (data) {
         setIsCreator(true);
         setIsStripeConnected(!!data.is_stripe_connected);
+        setNeedsOnboarding(!data.onboarding_complete);
+      } else {
+        setNeedsOnboarding(false);
       }
     }
 
@@ -200,6 +209,23 @@ export default function NavBar() {
           </div>
         </div>
       </div>
+
+      {user && isCreator && needsOnboarding && (
+        <div className="bg-amber-50 border-t border-amber-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm text-amber-800 font-semibold">
+              <Shield className="w-4 h-4" />
+              <span>Complete your setup to activate your Snapreme profile.</span>
+            </div>
+            <Link
+              to="/onboarding"
+              className="inline-flex items-center px-3 py-1.5 rounded-full bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700"
+            >
+              Finish onboarding
+            </Link>
+          </div>
+        </div>
+      )}
 
       {isMenuOpen && (
         <div className="md:hidden border-t border-slate-100 bg-white">

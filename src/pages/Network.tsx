@@ -34,8 +34,19 @@ export default function Network() {
     fetchCreators();
   }, []);
 
+  const completeCreators = useMemo(
+    () =>
+      creators.filter(
+        (creator) =>
+          creator.avatar_url &&
+          (creator as any).card_image_url &&
+          (creator as any).onboarding_complete
+      ),
+    [creators]
+  );
+
   const filteredCreators = useMemo(() => {
-    let list = [...creators];
+    let list = [...completeCreators];
 
     if (search.trim()) {
       const s = search.toLowerCase();
@@ -72,16 +83,16 @@ export default function Network() {
     }
 
     return list;
-  }, [creators, search, activeCategory]);
+  }, [completeCreators, search, activeCategory]);
 
   const topCreators = useMemo(
-    () => [...creators].sort((a, b) => b.followers - a.followers).slice(0, 5),
-    [creators]
+    () => [...completeCreators].sort((a, b) => b.followers - a.followers).slice(0, 5),
+    [completeCreators]
   );
 
   const risingCreators = useMemo(
-    () => [...creators].sort((a, b) => b.engagement_rate - a.engagement_rate).slice(0, 5),
-    [creators]
+    () => [...completeCreators].sort((a, b) => b.engagement_rate - a.engagement_rate).slice(0, 5),
+    [completeCreators]
   );
 
   return (
@@ -186,11 +197,7 @@ export default function Network() {
                       className="w-full flex items-center gap-3 text-left hover:bg-slate-50 rounded-2xl px-2 py-2.5"
                     >
                       <img
-                        src={
-                          creator.avatar_url ||
-                          creator.cover_url ||
-                          'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=400'
-                        }
+                        src={creator.avatar_url || (creator as any).card_image_url || '/assets/snapreme-default-banner.svg'}
                         alt={creator.name}
                         className="w-9 h-9 rounded-full object-cover"
                       />
