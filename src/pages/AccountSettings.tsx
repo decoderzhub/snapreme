@@ -271,8 +271,8 @@ export default function AccountSettings() {
       return;
     }
 
-    if (!formData.avatar_url || !formData.card_image_url || !formData.cover_url) {
-      setError('You must upload a profile avatar, card image, and banner to continue.');
+    if (!formData.avatar_url || !formData.card_image_url) {
+      setError('You must upload a profile avatar and card image to continue.');
       setSaving(false);
       return;
     }
@@ -448,6 +448,14 @@ export default function AccountSettings() {
                 aspectRatio="aspect-square"
                 uploading={uploadingSnapcode}
               />
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                <p className="text-sm text-blue-900 font-medium mb-1">Pro Tip: How to get your Snapcode</p>
+                <p className="text-xs text-blue-700">
+                  Open Snapchat, go to your profile, and tap the <span className="font-semibold">Share</span> icon in the top right.
+                  You'll see your Snap QR code with a "Share" button. Tap it to download the image to your photos,
+                  then upload it here for your profile.
+                </p>
+              </div>
             </div>
           </section>
 
