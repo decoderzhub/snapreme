@@ -271,7 +271,7 @@ export default function AccountSettings() {
       return;
     }
 
-    const forbidden = /\bsnap(chat)?\b|\bsc[:\s]|add me on/i;
+    const forbidden = /\bsnap(chat)?\b|\bsc:\s*\w+|\badd me on\b/i;
     const fieldsToCheck = [
       formData.bio,
       formData.short_bio,
