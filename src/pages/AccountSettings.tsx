@@ -182,7 +182,7 @@ export default function AccountSettings() {
 
   useEffect(() => {
     loadProfile();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -197,13 +197,19 @@ export default function AccountSettings() {
   }, [hasUnsavedChanges]);
 
   async function loadProfile() {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
+    setIsFan(false);
+    setProfile(null);
+
     const { profile: profileData, error: profileError } = await getCurrentUserProfile();
 
     if (profileError) {
-      setError(profileError.message);
-      setLoading(false);
-      return;
+      console.error('Error loading creator profile:', profileError);
     }
 
     if (profileData) {
@@ -234,15 +240,16 @@ export default function AccountSettings() {
       });
       setNiches(profileData.niches || []);
     } else {
-      setIsFan(true);
-
-      const { data: fanData } = await supabase
+      const { data: fanData, error: fanError } = await supabase
         .from('fan_profiles')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .maybeSingle();
 
+      console.log('Fan profile check:', { fanData, fanError, userId: user.id });
+
       if (fanData) {
+        setIsFan(true);
         setFanProfile(fanData);
         setFanName(fanData.name || '');
         setFanAvatarUrl(fanData.avatar_url || null);

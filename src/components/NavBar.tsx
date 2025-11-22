@@ -34,6 +34,8 @@ export default function NavBar() {
         setIsStripeConnected(!!data.is_stripe_connected);
         setNeedsOnboarding(!data.onboarding_complete);
       } else {
+        setIsCreator(false);
+        setIsStripeConnected(false);
         setNeedsOnboarding(false);
       }
     }
