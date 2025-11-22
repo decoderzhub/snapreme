@@ -98,17 +98,29 @@ function PreviewCard({ formData, tier, niches }: PreviewCardProps) {
           <span className="text-white text-xs font-semibold">{tier}</span>
         </div>
 
-        <div className="absolute bottom-0 p-4 text-left space-y-1">
-          <p className="text-white text-lg font-semibold leading-tight">
-            {formData.display_name || formData.name || 'Your Name'}
-          </p>
-          <p className="text-white/80 text-sm">{formData.handle || '@yourhandle'}</p>
+        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
+          <div className="text-left space-y-1 flex-1">
+            <p className="text-white text-lg font-semibold leading-tight">
+              {formData.display_name || formData.name || 'Your Name'}
+            </p>
+            <p className="text-white/80 text-sm">{formData.handle || '@yourhandle'}</p>
 
-          <div className="flex items-center gap-2 mt-1">
-            <span className="px-2 py-0.5 text-[11px] bg-white/20 text-white rounded-full">
-              {category}
-            </span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="px-2 py-0.5 text-[11px] bg-white/20 text-white rounded-full">
+                {category}
+              </span>
+            </div>
           </div>
+
+          {formData.avatar_url && (
+            <div className="flex-shrink-0 ml-3">
+              <img
+                src={formData.avatar_url}
+                alt={formData.name || 'Avatar'}
+                className="w-16 h-16 rounded-full border-2 border-white shadow-lg object-cover"
+              />
+            </div>
+          )}
         </div>
 
         <div className="absolute top-3 right-3 px-3 py-1 bg-black/60 text-white text-xs rounded-full flex items-center gap-1">
@@ -127,7 +139,6 @@ export default function AccountSettings() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCardImage, setUploadingCardImage] = useState(false);
-  const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingSnapcode, setUploadingSnapcode] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -152,7 +163,6 @@ export default function AccountSettings() {
     top_regions: [],
     avatar_url: null,
     card_image_url: null,
-    cover_url: null,
     snapcode_url: null,
   });
 
@@ -275,25 +285,6 @@ export default function AccountSettings() {
     }
 
     setUploadingCardImage(false);
-  };
-
-  const handleCoverUpload = async (file: File) => {
-    if (!user) return;
-
-    setUploadingCover(true);
-    if (formData.cover_url) {
-      await deleteProfileImage(formData.cover_url);
-    }
-
-    const { url, error: uploadError } = await uploadProfileImage(file, user.id, 'cover');
-
-    if (uploadError) {
-      setError(uploadError.message);
-    } else if (url) {
-      handleInputChange('cover_url', url);
-    }
-
-    setUploadingCover(false);
   };
 
   const handleSnapcodeUpload = async (file: File) => {
@@ -507,7 +498,7 @@ export default function AccountSettings() {
             </div>
           <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Profile Pictures</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <ImageUpload
                 currentImage={formData.avatar_url}
                 onImageSelect={handleAvatarUpload}
@@ -523,14 +514,6 @@ export default function AccountSettings() {
                 label="Card Image"
                 aspectRatio="aspect-[4/3]"
                 uploading={uploadingCardImage}
-              />
-              <ImageUpload
-                currentImage={formData.cover_url}
-                onImageSelect={handleCoverUpload}
-                onImageRemove={() => handleInputChange('cover_url', null)}
-                label="Cover Image"
-                aspectRatio="aspect-[4/3]"
-                uploading={uploadingCover}
               />
             </div>
             <div className="mt-6">
@@ -562,12 +545,6 @@ export default function AccountSettings() {
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Your Name"
                 required
-              />
-              <Field
-                label="Username (for search)"
-                value={formData.display_name || ''}
-                onChange={(e) => handleInputChange('display_name', e.target.value)}
-                placeholder="Display Name"
               />
               <div>
                 <label className="block text-sm font-semibold text-slate-900 mb-2">

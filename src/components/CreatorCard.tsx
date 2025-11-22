@@ -65,21 +65,31 @@ export default function CreatorCard({ creator, onClick }: Props) {
           <span className="text-white text-xs font-semibold">{creator.tier}</span>
         </div>
 
-        <div className="absolute bottom-0 p-4 text-left space-y-1">
-          <p className="text-white text-lg font-semibold leading-tight">
-            {creator.display_name || creator.name}
-          </p>
-          <p className="text-white/80 text-sm">{creator.handle}</p>
+        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
+          <div className="text-left space-y-1 flex-1">
+            <p className="text-white text-lg font-semibold leading-tight">
+              {creator.display_name || creator.name}
+            </p>
+            <p className="text-white/80 text-sm">{creator.handle}</p>
 
-          <div className="flex items-center gap-2 mt-1">
-            <span className="px-2 py-0.5 text-[11px] bg-white/20 text-white rounded-full">
-              {creator.category || 'Creator'}
-            </span>
-            {creator.is_priority && (
-              <span className="px-2 py-0.5 text-[11px] bg-orange-500 text-white rounded-full">
-                Featured
+            <div className="flex items-center gap-2 mt-1">
+              <span className="px-2 py-0.5 text-[11px] bg-white/20 text-white rounded-full">
+                {creator.category || 'Creator'}
               </span>
-            )}
+              {creator.is_priority && (
+                <span className="px-2 py-0.5 text-[11px] bg-orange-500 text-white rounded-full">
+                  Featured
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-shrink-0 ml-3">
+            <img
+              src={creator.avatar_url}
+              alt={creator.name}
+              className="w-16 h-16 rounded-full border-2 border-white shadow-lg object-cover"
+            />
           </div>
         </div>
 
