@@ -1,35 +1,10 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
-import { Creator } from '../types/database';
+import { useState } from 'react';
+import { demoCreators } from '../data/demoCreators';
 import CreatorCard from './CreatorCard';
 import CreatorModal from './CreatorModal';
 
 export default function InfluencerGrid() {
-  const [creators, setCreators] = useState<Creator[]>([]);
-  const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchCreators() {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('creators')
-          .select('*')
-          .order('followers', { ascending: false })
-          .limit(6);
-
-        if (error) throw error;
-        setCreators((data || []) as Creator[]);
-      } catch (err) {
-        console.error('Error loading creators:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchCreators();
-  }, []);
+  const [selectedCreator, setSelectedCreator] = useState<typeof demoCreators[0] | null>(null);
 
   return (
     <>
@@ -47,27 +22,15 @@ export default function InfluencerGrid() {
             </p>
           </div>
 
-          {loading ? (
-            <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-[420px] bg-slate-100 rounded-3xl animate-pulse" />
-              ))}
-            </div>
-          ) : creators.length === 0 ? (
-            <div className="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-              <p className="text-sm text-slate-600">No creators available yet.</p>
-            </div>
-          ) : (
-            <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {creators.map((creator) => (
-                <CreatorCard
-                  key={creator.id}
-                  creator={creator}
-                  onClick={() => setSelectedCreator(creator)}
-                />
-              ))}
-            </div>
-          )}
+          <div className="grid gap-6 sm:gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {demoCreators.map((creator) => (
+              <CreatorCard
+                key={creator.id}
+                creator={creator}
+                onClick={() => setSelectedCreator(creator)}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
