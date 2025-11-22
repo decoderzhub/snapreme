@@ -14,17 +14,16 @@ export default function Onboarding() {
     setSettingUpFan(true);
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('fan_profiles')
         .upsert({
           id: user.id,
           email: user.email!,
           account_type: 'fan',
-          onboarding_complete: false,
+          onboarding_complete: true,
         }, {
           onConflict: 'id'
-        })
-        .select();
+        });
 
       if (error) {
         console.error('Supabase error:', error);
@@ -33,8 +32,7 @@ export default function Onboarding() {
         return;
       }
 
-      console.log('Fan profile created:', data);
-      navigate('/onboarding/fan');
+      navigate('/account/settings');
     } catch (err) {
       console.error('Error setting up fan account:', err);
       alert('Failed to set up fan account. Please try again.');

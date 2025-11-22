@@ -144,6 +144,9 @@ export default function AccountSettings() {
   const [error, setError] = useState('');
   const [profile, setProfile] = useState<Creator | null>(null);
   const [isFan, setIsFan] = useState(false);
+  const [fanProfile, setFanProfile] = useState<any>(null);
+  const [fanName, setFanName] = useState('');
+  const [fanAvatarUrl, setFanAvatarUrl] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [formData, setFormData] = useState<ProfileUpdateData>({
@@ -232,6 +235,18 @@ export default function AccountSettings() {
       setNiches(profileData.niches || []);
     } else {
       setIsFan(true);
+
+      const { data: fanData } = await supabase
+        .from('fan_profiles')
+        .select('*')
+        .eq('id', user?.id)
+        .maybeSingle();
+
+      if (fanData) {
+        setFanProfile(fanData);
+        setFanName(fanData.name || '');
+        setFanAvatarUrl(fanData.avatar_url || null);
+      }
     }
 
     setLoading(false);
@@ -483,10 +498,53 @@ export default function AccountSettings() {
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
               <div className="flex items-center gap-3 mb-6">
                 <Heart className="w-6 h-6 text-pink-600" />
-                <h2 className="text-2xl font-bold text-slate-900">Fan Account</h2>
+                <h2 className="text-2xl font-bold text-slate-900">Fan Profile</h2>
               </div>
 
               <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-3">Profile Picture</label>
+                  <ImageUpload
+                    currentImageUrl={fanAvatarUrl}
+                    onUploadStart={() => setUploadingAvatar(true)}
+                    onUploadComplete={(url) => {
+                      setFanAvatarUrl(url);
+                      setUploadingAvatar(false);
+                      setHasUnsavedChanges(true);
+                    }}
+                    onDelete={async () => {
+                      if (fanAvatarUrl) {
+                        await deleteProfileImage(fanAvatarUrl);
+                        setFanAvatarUrl(null);
+                        setHasUnsavedChanges(true);
+                      }
+                    }}
+                    uploadPath="fan-avatars"
+                    aspectRatio="square"
+                    label="Upload Avatar"
+                  />
+                  {uploadingAvatar && (
+                    <div className="flex items-center gap-2 mt-2 text-sm text-slate-600">
+                      <Loader className="w-4 h-4 animate-spin" />
+                      <span>Uploading avatar...</span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Display Name</label>
+                  <input
+                    type="text"
+                    value={fanName}
+                    onChange={(e) => {
+                      setFanName(e.target.value);
+                      setHasUnsavedChanges(true);
+                    }}
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500/40 focus:border-pink-500"
+                    placeholder="Enter your name"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
                   <input
@@ -496,6 +554,45 @@ export default function AccountSettings() {
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-600"
                   />
                 </div>
+
+                <button
+                  onClick={async () => {
+                    if (!user) return;
+                    setSaving(true);
+                    setError('');
+
+                    const { error: updateError } = await supabase
+                      .from('fan_profiles')
+                      .update({
+                        name: fanName,
+                        avatar_url: fanAvatarUrl,
+                      })
+                      .eq('id', user.id);
+
+                    if (updateError) {
+                      setError(updateError.message);
+                    } else {
+                      setSuccess(true);
+                      setHasUnsavedChanges(false);
+                      setTimeout(() => setSuccess(false), 3000);
+                    }
+                    setSaving(false);
+                  }}
+                  disabled={saving || !hasUnsavedChanges}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Profile
+                    </>
+                  )}
+                </button>
 
                 <div className="border-t border-slate-200 pt-6">
                   <h3 className="text-lg font-semibold text-slate-900 mb-4">Payment Methods</h3>
