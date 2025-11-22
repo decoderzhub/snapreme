@@ -88,17 +88,38 @@ export default function Monetization() {
   const handleSavePrice = async () => {
     if (!user || !creatorId) return;
     setSavingPrice(true);
-    const { error } = await supabase
-      .from('creators')
-      .update({ subscription_price: price })
-      .eq('id', creatorId);
 
-    if (!error) {
-      alert('Price updated successfully');
-    } else {
-      alert('Failed to update price');
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      // Call edge function to create/update product on connected account
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-creator-product`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ price }),
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        alert('Price updated successfully! Product created in your Stripe account.');
+      } else {
+        throw new Error(json.error || 'Failed to update price');
+      }
+    } catch (err) {
+      console.error('Error updating price:', err);
+      alert(err.message || 'Failed to update price. Please try again.');
+    } finally {
+      setSavingPrice(false);
     }
-    setSavingPrice(false);
   };
 
   if (!user) {

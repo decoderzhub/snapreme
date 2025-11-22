@@ -92,7 +92,7 @@ Deno.serve(async (req: Request) => {
     // Fetch the creator's profile including their Stripe Connect account
     const { data: creator, error: creatorError } = await supabase
       .from('creators')
-      .select('id, user_id, display_name, name, handle, stripe_connect_id, subscription_price')
+      .select('id, user_id, display_name, name, handle, stripe_connect_id, subscription_price, stripe_price_id')
       .eq('id', creatorId)
       .maybeSingle();
 
@@ -103,6 +103,11 @@ Deno.serve(async (req: Request) => {
     // Ensure the creator has connected their Stripe account
     if (!creator.stripe_connect_id) {
       throw new Error('Creator has not connected Stripe yet. They need to complete onboarding first.');
+    }
+
+    // Ensure the creator has set up their product/price
+    if (!creator.stripe_price_id) {
+      throw new Error('Creator has not set up their subscription price yet.');
     }
 
     // ============================================
@@ -152,12 +157,9 @@ Deno.serve(async (req: Request) => {
      * Checkout Sessions create a hosted payment page where customers
      * can complete their purchase. This handles all payment UI/UX.
      *
-     * IMPORTANT: Using subscription_data with transfer_data to route
-     * funds to the connected account
+     * IMPORTANT: Using the price ID from the connected account's product
+     * This references a product that exists in the creator's Stripe Dashboard
      */
-
-    // Convert price from dollars to cents (Stripe uses smallest currency unit)
-    const priceCents = Math.round((creator.subscription_price || 5) * 100);
 
     const session = await stripe.checkout.sessions.create({
       // Subscription mode for recurring monthly payments
@@ -166,19 +168,18 @@ Deno.serve(async (req: Request) => {
       // Link to the existing customer
       customer: customerId,
 
-      // What the customer is buying
+      /**
+       * What the customer is buying
+       *
+       * Using pre-created price ID instead of inline price_data
+       * This price exists on the CONNECTED ACCOUNT, so we need to:
+       * 1. Reference it by ID
+       * 2. Pass stripeAccount header below
+       */
       line_items: [
         {
-          // Create the price inline (you can also use pre-created Price IDs)
-          price_data: {
-            currency: 'usd',
-            unit_amount: priceCents, // Price in cents
-            recurring: { interval: 'month' }, // Monthly subscription
-            product_data: {
-              name: `${creator.display_name || creator.name}'s Premium Content`,
-              description: `Monthly subscription to unlock ${creator.display_name || creator.name}'s Snapchat`,
-            },
-          },
+          // Reference the price created on the connected account
+          price: creator.stripe_price_id,
           quantity: 1,
         },
       ],
@@ -188,25 +189,24 @@ Deno.serve(async (req: Request) => {
       cancel_url: `${appUrl}/creator/${creator.handle}`,
 
       /**
+       * Payment Intent Data for Direct Charges
+       *
+       * Platform takes a fixed application fee on each charge
+       * Calculate 10% fee based on the subscription price
+       */
+      payment_intent_data: {
+        // Application fee in cents (10% of subscription price)
+        application_fee_amount: Math.round((creator.subscription_price || 5) * 100 * 0.10),
+      },
+
+      /**
        * Subscription Data - configures how the subscription works
        *
-       * application_fee_percent: Platform takes 10% of each payment
-       * transfer_data: Remaining 90% goes to the connected account
-       *
-       * This creates a "destination charge" where:
-       * - Payment is created on platform account
-       * - Platform fee is automatically deducted
-       * - Remaining balance is transferred to connected account
+       * For recurring subscriptions with application fees, we need:
+       * - application_fee_percent OR fixed fees in payment_intent_data
+       * - Metadata for tracking
        */
       subscription_data: {
-        // Platform takes 10% application fee
-        application_fee_percent: 10,
-
-        // Send remaining funds to the connected account
-        transfer_data: {
-          destination: creator.stripe_connect_id,
-        },
-
         // Store metadata for tracking
         metadata: {
           creatorId: creator.id,
@@ -221,6 +221,15 @@ Deno.serve(async (req: Request) => {
         fanId: user.id,
         platform: 'snapreme'
       },
+    }, {
+      /**
+       * CRITICAL: stripeAccount header
+       *
+       * This routes the checkout session to the connected account
+       * The price ID we're referencing exists on THEIR account,
+       * so we need to tell Stripe which account to use
+       */
+      stripeAccount: creator.stripe_connect_id,
     });
 
     // ============================================
