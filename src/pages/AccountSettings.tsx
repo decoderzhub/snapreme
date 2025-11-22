@@ -271,23 +271,6 @@ export default function AccountSettings() {
       return;
     }
 
-    const forbidden = /\bsnap(chat)?\b|\bsc:\s*\w+|\badd me on\b/i;
-    const fieldsToCheck = [
-      formData.bio,
-      formData.short_bio,
-      formData.display_name,
-      formData.handle,
-      formData.about,
-    ];
-
-    if (fieldsToCheck.some((field) => field && forbidden.test(field))) {
-      setError(
-        'Snapchat usernames and direct mentions are not allowed. Fans unlock your Snapcode through Snapreme.'
-      );
-      setSaving(false);
-      return;
-    }
-
     if (!formData.avatar_url || !formData.card_image_url || !formData.cover_url) {
       setError('You must upload a profile avatar, card image, and banner to continue.');
       setSaving(false);
