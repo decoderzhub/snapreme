@@ -13,6 +13,7 @@ import {
   ProfileUpdateData,
 } from '../lib/profileHelpers';
 import { Creator } from '../types/database';
+import { supabase } from '../lib/supabase';
 
 const NICHE_OPTIONS = [
   'Fashion & Beauty',
