@@ -1,61 +1,84 @@
 import { DollarSign, Users, Lock, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function ForCreators() {
   const perks = [
-    { icon: DollarSign, text: 'Keep 85%+ of your collaboration earnings' },
-    { icon: Users, text: 'Get discovered by premium brands actively seeking creators' },
-    { icon: Lock, text: 'Protect your identity with secure booking management' },
-    { icon: Sparkles, text: 'Access exclusive brand partnerships and campaigns' },
+    { icon: DollarSign, text: 'Earn recurring income from monthly fan subscriptions.' },
+    { icon: Users, text: 'Own your audience instead of chasing algorithms and brand deals.' },
+    { icon: Lock, text: 'Control what you share, who sees it, and how it is priced.' },
+    { icon: Sparkles, text: 'Offer exclusive drops, behind-the-scenes, and premium story sets.' },
   ];
 
   return (
     <section id="for-creators" className="py-20 md:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
           <div>
             <h2 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 mb-6">
-              Turn your Snapchat into a real business.
+              Turn your close friends vibe into a real business.
             </h2>
-            <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-              Join Snapreme's exclusive creator network and connect with brands that value your unique voice and audience.
-              We handle the business side so you can focus on creating amazing content.
+
+            <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-6">
+              Snapreme gives you a clean, simple way to share premium, story-style content with the fans who
+              actually care — and get paid for it. No chasing brand managers, no complicated contracts.
             </p>
-            <ul className="space-y-4 mb-8">
-              {perks.slice(0, 3).map((perk) => (
+
+            <ul className="space-y-4 mb-6">
+              {perks.map((perk) => (
                 <li key={perk.text} className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-1">
                     <perk.icon className="w-4 h-4 text-blue-600" />
                   </div>
-                  <span className="text-slate-700 leading-relaxed">{perk.text}</span>
+                  <span className="text-slate-700 leading-relaxed text-sm sm:text-base">{perk.text}</span>
                 </li>
               ))}
             </ul>
-            <button className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg">
-              Apply as a Creator
-            </button>
+
+            <Link
+              to="/apply"
+              className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-gradient-to-r
+                         from-blue-600 to-indigo-600 text-white text-sm font-medium shadow-md hover:shadow-lg
+                         hover:brightness-110 transition-all"
+            >
+              Apply as a creator
+            </Link>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 shadow-card">
-            <h3 className="text-2xl font-semibold text-slate-900 mb-6">Creator Perks</h3>
-            <ul className="space-y-5">
-              {perks.map((perk) => (
-                <li key={perk.text} className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center flex-shrink-0">
-                    <perk.icon className="w-5 h-5 text-blue-600" />
+          <div className="relative">
+            <div className="relative bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.6),transparent_60%)] opacity-70" />
+
+              <div className="relative space-y-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-300">
+                  Creator dashboard preview
+                </p>
+
+                <h3 className="text-xl font-semibold">Your premium content, simplified.</h3>
+
+                <div className="space-y-3 text-sm text-slate-100">
+                  <div className="flex justify-between">
+                    <span>Active subscribers</span>
+                    <span className="font-semibold">218</span>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-slate-700 font-medium leading-relaxed">{perk.text}</p>
+                  <div className="flex justify-between">
+                    <span>Monthly recurring</span>
+                    <span className="font-semibold">$3,240</span>
                   </div>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-8 pt-8 border-t border-blue-100">
-              <p className="text-sm text-slate-600 leading-relaxed">
-                <span className="font-semibold text-slate-900">Fast approval:</span> Most applications are reviewed within 48 hours.
-                Start collaborating with brands as soon as you're approved.
-              </p>
+                  <div className="flex justify-between">
+                    <span>Drop performance</span>
+                    <span>87% viewed • 42% saved</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-2xl bg-black/40 border border-white/10 px-4 py-3 text-xs text-slate-200">
+                  "Snapreme makes it easy. I post once, choose who sees it, and know exactly what I'm earning each month."
+                </div>
+              </div>
             </div>
           </div>
+
         </div>
       </div>
     </section>

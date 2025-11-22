@@ -34,11 +34,9 @@ export default function NavBar() {
 
   const navLinks = [
     { label: 'Home', path: '/', type: 'link' },
-    { label: 'Network', path: '/network', type: 'link' },
-    { label: 'For Brands', path: '/brands', type: 'link' },
+    { label: 'Creators', path: '/network', type: 'link' },
     { label: 'For Creators', path: '/creators', type: 'link' },
-    { label: 'Pricing', path: '/pricing', type: 'link' },
-    { label: 'Case Studies', path: '/case-studies', type: 'link' },
+    { label: 'Apply', path: '/apply', type: 'link' },
   ];
 
   return (
