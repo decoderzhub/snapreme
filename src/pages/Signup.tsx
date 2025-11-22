@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { validatePassword, getPasswordStrengthIndicator } from '../lib/passwordValidation';
 
 export default function Signup() {
   const [formData, setFormData] = useState({
-    name: '',
-    handle: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [isValidatingPassword, setIsValidatingPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState({ strength: 'weak' as const, score: 0, color: 'red' });
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -23,37 +25,41 @@ export default function Signup() {
     }));
   };
 
+  useEffect(() => {
+    if (formData.password) {
+      setPasswordStrength(getPasswordStrengthIndicator(formData.password));
+    }
+  }, [formData.password]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setPasswordErrors([]);
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
+    setIsValidatingPassword(true);
+    const validation = await validatePassword(formData.password);
+    setIsValidatingPassword(false);
 
-    if (!formData.handle.startsWith('@')) {
-      setError('Handle must start with @');
+    if (!validation.isValid) {
+      setPasswordErrors(validation.errors);
+      setError('Please fix the password issues below');
       return;
     }
 
     setLoading(true);
 
-    const { error } = await signUp(formData.email, formData.password, {
-      name: formData.name,
-      handle: formData.handle,
-    });
+    const { error } = await signUp(formData.email, formData.password, {});
 
     if (error) {
       setError(error.message);
       setLoading(false);
     } else {
-      navigate('/dashboard');
+      navigate('/onboarding');
     }
   };
 
@@ -79,39 +85,6 @@ export default function Signup() {
                 {error}
               </div>
             )}
-
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-2">
-                Display Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-colors"
-                placeholder="Luna"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="handle" className="block text-sm font-medium text-slate-700 mb-2">
-                Username Handle
-              </label>
-              <input
-                id="handle"
-                name="handle"
-                type="text"
-                value={formData.handle}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-colors"
-                placeholder="@yourusername"
-              />
-              <p className="text-xs text-slate-500 mt-1">Must start with @ and be unique</p>
-            </div>
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
@@ -143,6 +116,35 @@ export default function Signup() {
                 className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-colors"
                 placeholder="••••••••"
               />
+              {formData.password && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-slate-600">Password strength:</span>
+                    <span className={`text-xs font-semibold ${
+                      passwordStrength.color === 'red' ? 'text-red-600' :
+                      passwordStrength.color === 'orange' ? 'text-orange-600' :
+                      passwordStrength.color === 'yellow' ? 'text-yellow-600' :
+                      'text-green-600'
+                    }`}>
+                      {passwordStrength.strength.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-1.5">
+                    <div
+                      className={`h-1.5 rounded-full transition-all ${
+                        passwordStrength.color === 'red' ? 'bg-red-600' :
+                        passwordStrength.color === 'orange' ? 'bg-orange-600' :
+                        passwordStrength.color === 'yellow' ? 'bg-yellow-600' :
+                        'bg-green-600'
+                      }`}
+                      style={{ width: `${(passwordStrength.score / 8) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-slate-500 mt-2">
+                Must be at least 8 characters with uppercase, lowercase, numbers, and special characters
+              </p>
             </div>
 
             <div>
@@ -161,12 +163,36 @@ export default function Signup() {
               />
             </div>
 
+            {passwordErrors.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-red-900 mb-1">Password requirements not met:</p>
+                    <ul className="text-xs text-red-700 space-y-1">
+                      {passwordErrors.map((err, idx) => (
+                        <li key={idx} className="flex items-start gap-1">
+                          <span className="mt-1">•</span>
+                          <span>{err}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || isValidatingPassword}
               className="w-full bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? (
+              {isValidatingPassword ? (
+                <>
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Validating password...
+                </>
+              ) : loading ? (
                 <>
                   <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   Creating account...
