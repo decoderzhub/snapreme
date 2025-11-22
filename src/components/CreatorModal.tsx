@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Lock, MessageCircle, Loader2 } from 'lucide-react';
+import { X, Lock, MessageCircle, Loader2, Download, Lightbulb } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Creator } from '../types/database';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,6 +21,7 @@ export default function CreatorModal({ creator, onClose }: Props) {
   const [unlocking, setUnlocking] = useState(false);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showSnapcodeModal, setShowSnapcodeModal] = useState(false);
 
   const cover = creator.card_image_url || creator.cover_url || '/assets/snapreme-default-banner.svg';
 
@@ -117,6 +118,26 @@ export default function CreatorModal({ creator, onClose }: Props) {
     }
   };
 
+  const handleDownloadSnapcode = async () => {
+    if (!snapcodeUrl) return;
+
+    try {
+      const response = await fetch(snapcodeUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${creator.handle}-snapcode.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error downloading snapcode:', err);
+      alert('Failed to download Snapcode. Please try again.');
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
@@ -181,19 +202,31 @@ export default function CreatorModal({ creator, onClose }: Props) {
 
           <div className="relative bg-slate-50 rounded-2xl p-4 flex items-center justify-center min-h-[160px]">
             {snapcodeUrl ? (
-              <img
-                src={snapcodeUrl}
-                alt="Snapcode"
-                className={`w-32 h-32 object-contain transition-all duration-300 ${
-                  isUnlocked ? '' : 'blur-xl'
-                }`}
-              />
+              <div
+                className={`relative ${isUnlocked ? 'cursor-pointer' : ''}`}
+                onClick={() => isUnlocked && setShowSnapcodeModal(true)}
+              >
+                <img
+                  src={snapcodeUrl}
+                  alt="Snapcode"
+                  className={`w-32 h-32 object-contain transition-all duration-300 ${
+                    isUnlocked ? 'hover:scale-105' : 'blur-xl'
+                  }`}
+                />
+                {isUnlocked && (
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <div className="bg-black/70 rounded-lg px-3 py-2">
+                      <p className="text-white text-xs font-medium">Click to view</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="text-xs text-slate-500 text-center">
                 Snapcode not uploaded yet.
               </div>
             )}
-            {!isUnlocked && (
+            {!isUnlocked && snapcodeUrl && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <Lock className="w-8 h-8 text-slate-400" />
               </div>
@@ -238,6 +271,54 @@ export default function CreatorModal({ creator, onClose }: Props) {
           )}
         </div>
       </div>
+
+      {showSnapcodeModal && isUnlocked && snapcodeUrl && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowSnapcodeModal(false)}
+        >
+          <div
+            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-slate-900">Scan to Add</h3>
+              <button
+                onClick={() => setShowSnapcodeModal(false)}
+                className="bg-slate-100 hover:bg-slate-200 rounded-full p-2 transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-900" />
+              </button>
+            </div>
+
+            <div className="bg-yellow-50 rounded-2xl p-8 mb-6 flex items-center justify-center">
+              <img
+                src={snapcodeUrl}
+                alt="Snapcode"
+                className="w-80 h-80 object-contain"
+              />
+            </div>
+
+            <button
+              onClick={handleDownloadSnapcode}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors mb-4"
+            >
+              <Download className="w-5 h-5" />
+              Download Snapcode
+            </button>
+
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
+              <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-blue-900 mb-1">Pro Tip</p>
+                <p className="text-xs text-blue-700 leading-relaxed">
+                  After downloading, open your Photos app, find the Snapcode, and long press on the image. Select "Open in Snapchat" to add {creator.display_name || creator.name} instantly!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
