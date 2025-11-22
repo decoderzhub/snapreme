@@ -72,7 +72,7 @@ export default function CreatorCard({ creator, onClick }: Props) {
             </p>
             <p className="text-white/80 text-sm">{creator.handle}</p>
 
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center flex-wrap gap-2 mt-1">
               <span className="px-2 py-0.5 text-[11px] bg-white/20 text-white rounded-full">
                 {creator.category || 'Creator'}
               </span>
@@ -81,6 +81,11 @@ export default function CreatorCard({ creator, onClick }: Props) {
                   Featured
                 </span>
               )}
+              {creator.niches?.slice(0, 3).map((niche) => (
+                <span key={niche} className="px-2 py-0.5 text-[11px] bg-blue-500/80 text-white rounded-full">
+                  {niche}
+                </span>
+              ))}
             </div>
           </div>
 

@@ -307,15 +307,21 @@ export default function AccountSettings() {
   };
 
   const handleNicheToggle = (niche: string) => {
-    setNiches((prev) =>
-      prev.includes(niche) ? prev.filter((n) => n !== niche) : [...prev, niche]
-    );
+    setNiches((prev) => {
+      if (prev.includes(niche)) {
+        return prev.filter((n) => n !== niche);
+      } else if (prev.length < 3) {
+        return [...prev, niche];
+      }
+      return prev;
+    });
     setHasUnsavedChanges(true);
   };
 
   const addContentType = () => {
-    if (contentTypeInput.trim() && !formData.content_types?.includes(contentTypeInput.trim())) {
-      handleInputChange('content_types', [...(formData.content_types || []), contentTypeInput.trim()]);
+    const currentTypes = formData.content_types || [];
+    if (contentTypeInput.trim() && !currentTypes.includes(contentTypeInput.trim()) && currentTypes.length < 3) {
+      handleInputChange('content_types', [...currentTypes, contentTypeInput.trim()]);
       setContentTypeInput('');
     }
   };
@@ -673,6 +679,9 @@ export default function AccountSettings() {
               <div>
                 <label className="block text-sm font-semibold text-slate-900 mb-3">
                   Select Your Niches
+                  <span className="text-xs text-slate-500 font-normal ml-2">
+                    (maximum 3)
+                  </span>
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {NICHE_OPTIONS.map((niche) => (
@@ -680,9 +689,12 @@ export default function AccountSettings() {
                       key={niche}
                       type="button"
                       onClick={() => handleNicheToggle(niche)}
+                      disabled={!niches.includes(niche) && niches.length >= 3}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                         niches.includes(niche)
                           ? 'bg-blue-600 text-white'
+                          : niches.length >= 3
+                          ? 'bg-slate-50 text-slate-400 cursor-not-allowed'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     >
@@ -690,11 +702,17 @@ export default function AccountSettings() {
                     </button>
                   ))}
                 </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  {niches.length}/3 niches selected
+                </p>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-slate-900 mb-2">
                   Content Types
+                  <span className="text-xs text-slate-500 font-normal ml-2">
+                    (maximum 3)
+                  </span>
                 </label>
                 <div className="flex gap-2 mb-2">
                   <input
@@ -703,17 +721,19 @@ export default function AccountSettings() {
                     onChange={(e) => setContentTypeInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addContentType())}
                     placeholder="e.g., Stories, Reels, Spotlights"
-                    className="flex-1 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={(formData.content_types?.length || 0) >= 3}
+                    className="flex-1 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
                   />
                   <button
                     type="button"
                     onClick={addContentType}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    disabled={(formData.content_types?.length || 0) >= 3}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
                   >
                     Add
                   </button>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-2">
                   {formData.content_types?.map((type) => (
                     <span
                       key={type}
@@ -730,6 +750,9 @@ export default function AccountSettings() {
                     </span>
                   ))}
                 </div>
+                <p className="text-xs text-slate-500">
+                  {formData.content_types?.length || 0}/3 content types added
+                </p>
               </div>
 
               <div>
@@ -770,33 +793,6 @@ export default function AccountSettings() {
                     </span>
                   ))}
                 </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Audience Stats</h2>
-            <p className="text-sm text-slate-600 mb-6">
-              These numbers are generated from fans who follow and view your profile.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border border-slate-100 rounded-xl bg-slate-50">
-                <p className="text-sm text-slate-500">Fans</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {profile?.followers ?? 0}
-                </p>
-              </div>
-              <div className="p-4 border border-slate-100 rounded-xl bg-slate-50">
-                <p className="text-sm text-slate-500">Profile Views</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {profile?.profile_views ?? 0}
-                </p>
-              </div>
-              <div className="p-4 border border-slate-100 rounded-xl bg-slate-50">
-                <p className="text-sm text-slate-500">Subscribers</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {profile?.subscribers ?? 0}
-                </p>
               </div>
             </div>
           </section>

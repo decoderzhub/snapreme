@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getCurrentUserProfile } from '../lib/profileHelpers';
 import type { Creator } from '../types/database';
-import { Sparkles, Edit3, Trophy, TrendingUp, Star, Crown } from 'lucide-react';
+import { Sparkles, Edit3, Trophy, TrendingUp, Star, Crown, Users, Eye, Heart } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 function calculateTierFromFollowers(followers: number): 'Rising' | 'Pro' | 'Elite' {
   if (followers >= 1000000) return 'Elite';
@@ -45,11 +46,38 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Creator | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    subscribers: 0,
+    cardViews: 0,
+    favorites: 0,
+  });
 
   useEffect(() => {
     async function load() {
       const { profile } = await getCurrentUserProfile();
       setProfile(profile);
+
+      if (profile) {
+        // Get subscriber count
+        const { count: subscriberCount } = await supabase
+          .from('subscriptions')
+          .select('*', { count: 'exact', head: true })
+          .eq('creator_id', profile.id)
+          .eq('is_active', true);
+
+        // Get favorites count
+        const { count: favoritesCount } = await supabase
+          .from('favorites')
+          .select('*', { count: 'exact', head: true })
+          .eq('creator_id', profile.id);
+
+        setStats({
+          subscribers: subscriberCount || 0,
+          cardViews: profile.profile_views || 0,
+          favorites: favoritesCount || 0,
+        });
+      }
+
       setLoading(false);
     }
     load();
@@ -204,10 +232,53 @@ export default function Dashboard() {
             </div>
 
             <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-2">Coming soon</h2>
-              <p className="text-sm text-slate-600">
-                Earnings, subscriber count, and content performance will appear here as we roll out more creator tools.
+              <div className="flex items-center gap-2 mb-6">
+                <Trophy className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold text-slate-900">Audience Stats</h2>
+              </div>
+              <p className="text-sm text-slate-600 mb-6">
+                Track your growth and engagement across the platform.
               </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-5 border border-slate-100 rounded-xl bg-gradient-to-br from-blue-50 to-white hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-600">Subscribers</p>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">
+                    {stats.subscribers.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">Active fans</p>
+                </div>
+
+                <div className="p-5 border border-slate-100 rounded-xl bg-gradient-to-br from-green-50 to-white hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                      <Eye className="w-5 h-5 text-green-600" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-600">Card Views</p>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">
+                    {stats.cardViews.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">Total impressions</p>
+                </div>
+
+                <div className="p-5 border border-slate-100 rounded-xl bg-gradient-to-br from-pink-50 to-white hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center">
+                      <Heart className="w-5 h-5 text-pink-600" />
+                    </div>
+                    <p className="text-sm font-medium text-slate-600">Favorites</p>
+                  </div>
+                  <p className="text-3xl font-bold text-slate-900">
+                    {stats.favorites.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">Users favorited you</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
