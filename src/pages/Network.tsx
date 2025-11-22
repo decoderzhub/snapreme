@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabase';
 import { Creator } from '../types/database';
 import CreatorCard from '../components/CreatorCard';
 import CreatorModal from '../components/CreatorModal';
-import StatsBar from '../components/StatsBar';
 
 export default function Network() {
   const [creators, setCreators] = useState<Creator[]>([]);
@@ -88,8 +87,6 @@ export default function Network() {
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <StatsBar />
-
         <section className="mt-6">
           <div className="flex items-center justify-between mb-4">
             <div>
