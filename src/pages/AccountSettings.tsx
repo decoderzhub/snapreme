@@ -143,6 +143,7 @@ export default function AccountSettings() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [profile, setProfile] = useState<Creator | null>(null);
+  const [isFan, setIsFan] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [formData, setFormData] = useState<ProfileUpdateData>({
@@ -204,6 +205,7 @@ export default function AccountSettings() {
 
     if (profileData) {
       setProfile(profileData);
+      setIsFan(false);
       const followers = profileData.followers || 0;
 
       setFormData({
@@ -228,6 +230,8 @@ export default function AccountSettings() {
         snapcode_url: profileData.snapcode_url,
       });
       setNiches(profileData.niches || []);
+    } else {
+      setIsFan(true);
     }
 
     setLoading(false);
@@ -432,7 +436,7 @@ export default function AccountSettings() {
     );
   }
 
-  if (!profile) {
+  if (!profile && !isFan) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-blue-50/60 to-transparent flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
@@ -447,6 +451,136 @@ export default function AccountSettings() {
           >
             Create Profile
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isFan) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-pink-50/60 to-transparent py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">Account Settings</h1>
+            <p className="text-slate-600">Manage your fan account preferences</p>
+          </div>
+
+          <div className="space-y-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <span>Settings updated successfully!</span>
+              </div>
+            )}
+
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <Heart className="w-6 h-6 text-pink-600" />
+                <h2 className="text-2xl font-bold text-slate-900">Fan Account</h2>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                  <input
+                    type="text"
+                    value={user?.email || ''}
+                    disabled
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-600"
+                  />
+                </div>
+
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Payment Methods</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Payment methods are securely managed through Stripe. When you subscribe to a creator, you'll be prompted to add a payment method.
+                  </p>
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                    <p className="text-sm text-blue-900 font-medium">
+                      Payment methods are added during subscription checkout
+                    </p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      You'll add a payment method when you subscribe to your first creator
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-200 pt-6">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Want to become a creator?</h3>
+                  <p className="text-sm text-slate-600 mb-4">
+                    Start monetizing your Snapchat content and connect with fans.
+                  </p>
+                  <button
+                    onClick={() => navigate('/apply')}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all"
+                  >
+                    Apply as Creator
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+              <h2 className="text-xl font-bold text-slate-900 mb-4">Change Password</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">New Password</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+                    placeholder="Enter new password"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
+                    placeholder="Confirm new password"
+                  />
+                </div>
+                <button
+                  onClick={async () => {
+                    if (newPassword !== confirmPassword) {
+                      setError('Passwords do not match');
+                      return;
+                    }
+                    if (newPassword.length < 6) {
+                      setError('Password must be at least 6 characters');
+                      return;
+                    }
+                    setSaving(true);
+                    setError('');
+                    const { error: pwError } = await updateUserPassword(newPassword);
+                    if (pwError) {
+                      setError(pwError.message);
+                    } else {
+                      setSuccess(true);
+                      setNewPassword('');
+                      setConfirmPassword('');
+                      setTimeout(() => setSuccess(false), 3000);
+                    }
+                    setSaving(false);
+                  }}
+                  disabled={saving || !newPassword || !confirmPassword}
+                  className="w-full px-6 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Updating...' : 'Update Password'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
