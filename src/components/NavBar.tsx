@@ -62,11 +62,11 @@ export default function NavBar() {
   };
 
   const navLinks = [
-    { label: 'Home', type: 'link' as const, path: '/', showWhenLoggedIn: true },
-    { label: 'Explore creators', type: 'link' as const, path: '/network', showWhenLoggedIn: true },
-    { label: 'For creators', type: 'link' as const, path: '/creators', showWhenLoggedIn: false },
-    { label: 'Pricing', type: 'link' as const, path: '/pricing', showWhenLoggedIn: true },
-  ].filter(link => !user || link.showWhenLoggedIn);
+    { label: 'Home', type: 'link' as const, path: '/', requiresAuth: false },
+    { label: 'Explore creators', type: 'link' as const, path: '/network', requiresAuth: true },
+    { label: 'For creators', type: 'link' as const, path: '/creators', requiresAuth: false },
+    { label: 'Pricing', type: 'link' as const, path: '/pricing', requiresAuth: false },
+  ].filter(link => !link.requiresAuth || user);
 
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 border-b border-white/40">
