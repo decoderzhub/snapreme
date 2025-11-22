@@ -88,7 +88,7 @@ function PreviewCard({ formData, tier, niches }: PreviewCardProps) {
       <div className="relative h-[420px] w-full">
         <img
           src={formData.card_image_url}
-          alt={formData.display_name || 'Preview'}
+          alt={formData.name || 'Preview'}
           className="w-full h-full object-cover"
         />
 
@@ -102,7 +102,7 @@ function PreviewCard({ formData, tier, niches }: PreviewCardProps) {
         <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
           <div className="text-left space-y-1 flex-1">
             <p className="text-white text-lg font-semibold leading-tight">
-              {formData.display_name || formData.name || 'Your Name'}
+              {formData.name || 'Your Name'}
             </p>
             <p className="text-white/80 text-sm">{formData.handle || '@yourhandle'}</p>
 
@@ -172,6 +172,7 @@ export default function AccountSettings() {
   });
 
   const [niches, setNiches] = useState<string[]>([]);
+  const [username, setUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswordSection, setShowPasswordSection] = useState(false);
@@ -218,6 +219,9 @@ export default function AccountSettings() {
       setIsFan(false);
       const followers = profileData.followers || 0;
 
+      const extractedUsername = profileData.handle ? profileData.handle.replace(/^@+/, '') : '';
+      setUsername(extractedUsername);
+
       setFormData({
         name: profileData.name || '',
         display_name: profileData.display_name || '',
@@ -261,14 +265,20 @@ export default function AccountSettings() {
   }
 
   const handleInputChange = (field: keyof ProfileUpdateData, value: any) => {
-    setFormData((prev) => {
-      const updated = { ...prev, [field]: value };
-      if (field === 'display_name') {
-        const username = value?.trim() || '';
-        updated.handle = username ? `@${username.replace(/^@+/, '')}` : '';
-      }
-      return updated;
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value
+    }));
+    setHasUnsavedChanges(true);
+  };
+
+  const handleUsernameChange = (value: string) => {
+    const sanitized = value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    setUsername(sanitized);
+    setFormData((prev) => ({
+      ...prev,
+      handle: sanitized ? `@${sanitized}` : ''
+    }));
     setHasUnsavedChanges(true);
   };
 
@@ -804,24 +814,38 @@ export default function AccountSettings() {
           <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Basic Information</h2>
             <div className="space-y-4">
-              <Field
-                label="Display Name"
-                value={formData.name || ''}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Your Name"
-                required
-              />
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                  Username <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="yourusername"
+                  maxLength={30}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Letters, numbers, and underscores only
+                </p>
+              </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-900 mb-2">
                   Handle <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={formData.handle || ''}
-                  disabled
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-700 cursor-not-allowed"
-                  placeholder="@yourusername"
-                />
+                <div className="flex items-center gap-2">
+                  <span className="px-4 py-3 bg-slate-100 border border-slate-200 rounded-l-lg text-slate-700 font-medium">
+                    @
+                  </span>
+                  <input
+                    type="text"
+                    value={username}
+                    disabled
+                    className="flex-1 px-4 py-3 border border-slate-200 rounded-r-lg bg-slate-50 text-slate-700 cursor-not-allowed"
+                    placeholder="yourusername"
+                  />
+                </div>
                 <p className="text-xs text-slate-500 mt-1">
                   Auto-generated from your username
                 </p>
