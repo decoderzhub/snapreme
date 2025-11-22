@@ -146,7 +146,14 @@ export default function AccountSettings() {
   }
 
   const handleInputChange = (field: keyof ProfileUpdateData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [field]: value };
+      if (field === 'display_name') {
+        const username = value?.trim() || '';
+        updated.handle = username ? `@${username.replace(/^@+/, '')}` : '';
+      }
+      return updated;
+    });
     setHasUnsavedChanges(true);
   };
 
@@ -475,13 +482,21 @@ export default function AccountSettings() {
                 onChange={(e) => handleInputChange('display_name', e.target.value)}
                 placeholder="Display Name"
               />
-              <Field
-                label="Handle"
-                value={formData.handle || ''}
-                onChange={(e) => handleInputChange('handle', e.target.value)}
-                placeholder="@yourusername"
-                required
-              />
+              <div>
+                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                  Handle <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.handle || ''}
+                  disabled
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-700 cursor-not-allowed"
+                  placeholder="@yourusername"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Auto-generated from your username
+                </p>
+              </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-900 mb-2">
                   Creator Tier (auto-assigned)
