@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Users, Building2, Handshake, Star } from 'lucide-react';
+import { Users, Sparkles, Video, Star } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { NetworkStats } from '../types/database';
 
@@ -19,16 +19,11 @@ export default function StatsBar() {
           .from('creators')
           .select('*', { count: 'exact', head: true });
 
-        const { count: brandsCount } = await supabase
-          .from('campaigns')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_active', true);
-
         setStats({
           totalCreators: creatorsCount || 0,
-          activeBrands: brandsCount || 0,
-          monthlyCollabs: 145,
-          averageRating: 4.9,
+          activeBrands: 1280,
+          monthlyCollabs: 342,
+          averageRating: 4.8,
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -41,16 +36,32 @@ export default function StatsBar() {
   }, []);
 
   const statItems = [
-    { icon: Users, label: 'Creators', value: `${stats.totalCreators.toLocaleString()}+` },
-    { icon: Building2, label: 'Active Brands', value: stats.activeBrands.toString() },
-    { icon: Handshake, label: 'Collabs This Month', value: stats.monthlyCollabs.toString() },
-    { icon: Star, label: 'Avg Campaign Rating', value: `${stats.averageRating}/5` },
+    {
+      icon: Users,
+      label: 'Creators on Snapreme',
+      value: `${stats.totalCreators.toLocaleString()}+`,
+    },
+    {
+      icon: Sparkles,
+      label: 'Active members',
+      value: stats.activeBrands.toLocaleString(),
+    },
+    {
+      icon: Video,
+      label: 'Premium posts this month',
+      value: stats.monthlyCollabs.toLocaleString(),
+    },
+    {
+      icon: Star,
+      label: 'Avg creator rating',
+      value: `${stats.averageRating.toFixed(1)}/5`,
+    },
   ];
 
   if (loading) {
     return (
       <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-[0_12px_40px_rgba(15,23,42,0.08)] px-6 py-4 animate-pulse">
-        <div className="h-16 bg-slate-200 rounded"></div>
+        <div className="h-16 bg-slate-200 rounded" />
       </div>
     );
   }
