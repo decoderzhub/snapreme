@@ -146,7 +146,7 @@ export default function AccountSettings() {
   const [profile, setProfile] = useState<Creator | null>(null);
   const [isFan, setIsFan] = useState(false);
   const [fanProfile, setFanProfile] = useState<any>(null);
-  const [fanName, setFanName] = useState('');
+  const [fanUsername, setFanUsername] = useState('');
   const [fanAvatarUrl, setFanAvatarUrl] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -252,7 +252,7 @@ export default function AccountSettings() {
       if (fanData) {
         setIsFan(true);
         setFanProfile(fanData);
-        setFanName(fanData.name || '');
+        setFanUsername(fanData.username || '');
         setFanAvatarUrl(fanData.avatar_url || null);
       }
     }
@@ -540,17 +540,22 @@ export default function AccountSettings() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Display Name</label>
-                  <input
-                    type="text"
-                    value={fanName}
-                    onChange={(e) => {
-                      setFanName(e.target.value);
-                      setHasUnsavedChanges(true);
-                    }}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500/40 focus:border-pink-500"
-                    placeholder="Enter your name"
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Username</label>
+                  <div className="flex items-center gap-2">
+                    <span className="px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-l-lg text-slate-700 font-medium">
+                      @
+                    </span>
+                    <input
+                      type="text"
+                      value={fanUsername}
+                      disabled
+                      className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-r-lg text-slate-600 cursor-not-allowed"
+                      placeholder="username"
+                    />
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Username cannot be changed after creation
+                  </p>
                 </div>
 
                 <div>
@@ -572,7 +577,6 @@ export default function AccountSettings() {
                     const { error: updateError } = await supabase
                       .from('fan_profiles')
                       .update({
-                        name: fanName,
                         avatar_url: fanAvatarUrl,
                       })
                       .eq('id', user.id);

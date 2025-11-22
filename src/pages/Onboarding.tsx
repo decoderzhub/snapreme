@@ -20,7 +20,7 @@ export default function Onboarding() {
           id: user.id,
           email: user.email!,
           account_type: 'fan',
-          onboarding_complete: true,
+          onboarding_complete: false,
         }, {
           onConflict: 'id'
         });
@@ -32,7 +32,7 @@ export default function Onboarding() {
         return;
       }
 
-      navigate('/account/settings');
+      navigate('/fan-onboarding');
     } catch (err) {
       console.error('Error setting up fan account:', err);
       alert('Failed to set up fan account. Please try again.');
