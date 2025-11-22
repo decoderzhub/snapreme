@@ -3,7 +3,43 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getCurrentUserProfile } from '../lib/profileHelpers';
 import type { Creator } from '../types/database';
-import { Sparkles, Edit3, Eye } from 'lucide-react';
+import { Sparkles, Edit3, Eye, Trophy, TrendingUp, Star, Crown } from 'lucide-react';
+
+function calculateTierFromFollowers(followers: number): 'Rising' | 'Pro' | 'Elite' {
+  if (followers >= 100000) return 'Elite';
+  if (followers >= 10000) return 'Pro';
+  return 'Rising';
+}
+
+function getTierInfo(tier: 'Rising' | 'Pro' | 'Elite') {
+  const tiers = {
+    Rising: {
+      icon: TrendingUp,
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      borderColor: 'border-emerald-200',
+      gradientFrom: 'from-emerald-500',
+      gradientTo: 'to-teal-500'
+    },
+    Pro: {
+      icon: Star,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
+      gradientFrom: 'from-blue-500',
+      gradientTo: 'to-cyan-500'
+    },
+    Elite: {
+      icon: Crown,
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      borderColor: 'border-amber-200',
+      gradientFrom: 'from-amber-500',
+      gradientTo: 'to-orange-500'
+    },
+  };
+  return tiers[tier];
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -23,6 +59,20 @@ export default function Dashboard() {
     (profile?.handle || '')
       .replace(/^@/, '')
       .trim() || 'your-handle';
+
+  const currentTier = calculateTierFromFollowers(profile?.followers || 0);
+  const tierInfo = getTierInfo(currentTier);
+  const TierIcon = tierInfo.icon;
+
+  const tiers = [
+    { name: 'Rising', min: 0, max: 9999, icon: TrendingUp },
+    { name: 'Pro', min: 10000, max: 99999, icon: Star },
+    { name: 'Elite', min: 100000, max: null, icon: Crown },
+  ];
+
+  const currentFollowers = profile?.followers || 0;
+  const nextTier = tiers.find(t => currentFollowers < t.min);
+  const followersNeeded = nextTier ? nextTier.min - currentFollowers : 0;
 
   return (
     <div className="min-h-screen bg-slate-50 py-12">
@@ -48,6 +98,74 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="space-y-6">
+            <div className={`bg-gradient-to-br ${tierInfo.gradientFrom} ${tierInfo.gradientTo} rounded-2xl shadow-lg p-6 text-white`}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <TierIcon className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider opacity-90">Your Creator Tier</p>
+                  <h2 className="text-2xl font-bold">{currentTier}</h2>
+                </div>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="opacity-90">Current Fans</span>
+                  <span className="font-bold">{currentFollowers.toLocaleString()}</span>
+                </div>
+
+                {nextTier && (
+                  <>
+                    <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-white h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.min((currentFollowers / nextTier.min) * 100, 100)}%`
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="opacity-75">{followersNeeded.toLocaleString()} more fans to {nextTier.name}</span>
+                      <span className="font-semibold">{nextTier.min.toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
+
+                {currentTier === 'Elite' && (
+                  <p className="text-sm opacity-90">🎉 You've reached the highest tier!</p>
+                )}
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                {tiers.map((tier) => {
+                  const TierItemIcon = tier.icon;
+                  const isCurrentTier = tier.name === currentTier;
+                  const isPastTier = currentFollowers >= tier.min;
+                  return (
+                    <div
+                      key={tier.name}
+                      className={`rounded-lg p-3 text-center transition-all ${
+                        isCurrentTier
+                          ? 'bg-white/30 backdrop-blur-sm ring-2 ring-white/50'
+                          : isPastTier
+                          ? 'bg-white/10 backdrop-blur-sm'
+                          : 'bg-white/5 opacity-60'
+                      }`}
+                    >
+                      <TierItemIcon className={`w-5 h-5 mx-auto mb-1 ${
+                        isCurrentTier ? 'text-white' : 'text-white/70'
+                      }`} />
+                      <p className="text-xs font-semibold mb-0.5">{tier.name}</p>
+                      <p className="text-[10px] opacity-75">
+                        {tier.min.toLocaleString()}+ {tier.max ? `- ${tier.max.toLocaleString()}` : 'fans'}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">

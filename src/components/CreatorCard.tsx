@@ -1,5 +1,5 @@
 import { Creator } from '../types/database';
-import { Heart } from 'lucide-react';
+import { Heart, TrendingUp, Star, Crown } from 'lucide-react';
 import { useFavorites } from '../contexts/FavoritesContext';
 
 interface Props {
@@ -21,6 +21,30 @@ export default function CreatorCard({ creator, onClick }: Props) {
     toggleFavorite(creator.id);
   };
 
+  const getTierStyle = (tier: 'Rising' | 'Pro' | 'Elite') => {
+    const styles = {
+      Rising: {
+        icon: TrendingUp,
+        gradient: 'from-emerald-500 to-teal-500',
+        iconColor: 'text-emerald-300'
+      },
+      Pro: {
+        icon: Star,
+        gradient: 'from-blue-500 to-cyan-500',
+        iconColor: 'text-blue-300'
+      },
+      Elite: {
+        icon: Crown,
+        gradient: 'from-amber-500 to-orange-500',
+        iconColor: 'text-amber-300'
+      }
+    };
+    return styles[tier];
+  };
+
+  const tierStyle = getTierStyle(creator.tier);
+  const TierIcon = tierStyle.icon;
+
   return (
     <button
       onClick={onClick}
@@ -35,6 +59,11 @@ export default function CreatorCard({ creator, onClick }: Props) {
         />
 
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
+
+        <div className={`absolute top-3 left-3 px-3 py-1.5 bg-gradient-to-r ${tierStyle.gradient} rounded-full flex items-center gap-1.5 shadow-lg`}>
+          <TierIcon className="w-3.5 h-3.5 text-white" />
+          <span className="text-white text-xs font-semibold">{creator.tier}</span>
+        </div>
 
         <div className="absolute bottom-0 p-4 text-left space-y-1">
           <p className="text-white text-lg font-semibold leading-tight">
@@ -54,7 +83,7 @@ export default function CreatorCard({ creator, onClick }: Props) {
           </div>
         </div>
 
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-14 left-3">
           <button
             onClick={handleFavoriteClick}
             className="p-2 bg-black/60 hover:bg-black/80 rounded-full transition-colors"
