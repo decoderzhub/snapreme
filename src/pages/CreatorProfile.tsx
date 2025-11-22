@@ -1,73 +1,88 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { MapPin, Users, TrendingUp, Eye, ExternalLink, Copy, CheckCircle, X, Edit } from 'lucide-react';
-import OfferCard from '../components/OfferCard';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Users,
+  Eye,
+  QrCode,
+  Lock,
+  Copy,
+  CheckCircle,
+  Edit,
+  AlertCircle,
+  ArrowLeft,
+} from 'lucide-react';
 import { Creator } from '../types/database';
-import { mockCreators, mockOffers } from '../data/creators';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export default function CreatorProfile() {
   const { handle } = useParams<{ handle: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const [creator, setCreator] = useState<Creator | null>(null);
-  const [showBookingModal, setShowBookingModal] = useState(false);
-  const [selectedOfferId, setSelectedOfferId] = useState('');
-  const [copiedLink, setCopiedLink] = useState(false);
-  const [bookingForm, setBookingForm] = useState({
-    name: '',
-    email: '',
-    brand_project: '',
-    message: '',
-  });
-  const [bookingSuccess, setBookingSuccess] = useState(false);
 
+  const [creator, setCreator] = useState<Creator | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [relatedCreators, setRelatedCreators] = useState<Creator[]>([]);
+  const [checkingSubscription, setCheckingSubscription] = useState(false);
+
+  const searchParams = new URLSearchParams(location.search);
+  const unlockedFromQuery = searchParams.get('unlocked') === 'true';
+
+  // Fetch creator from Supabase instead of mock data
   useEffect(() => {
-    const cleanHandle = handle?.replace('@', '');
-    const foundCreator = mockCreators.find((c) => c.handle.replace('@', '') === cleanHandle);
-    setCreator(foundCreator || null);
+    async function loadCreator() {
+      setLoading(true);
+      const cleanHandle = handle?.replace('@', '');
+
+      const { data, error } = await supabase
+        .from('creators')
+        .select('*')
+        .ilike('handle', `%${cleanHandle}%`)
+        .maybeSingle();
+
+      if (!error && data) {
+        setCreator(data as Creator);
+      } else {
+        setCreator(null);
+      }
+      setLoading(false);
+    }
+
+    loadCreator();
   }, [handle]);
 
-  if (!creator) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Creator Not Found</h2>
-          <p className="text-slate-600 mb-6">This creator profile doesn't exist or has been removed.</p>
-          <Link
-            to="/network"
-            className="inline-flex px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all"
-          >
-            Browse Creators
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Subscription check – fan subscribed to this creator?
+  useEffect(() => {
+    if (!user || !creator) return;
 
-  const creatorOffers = mockOffers[creator.id] || [];
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'Elite':
-        return 'bg-yellow-500 text-white';
-      case 'Pro':
-        return 'bg-blue-600 text-white';
-      case 'Rising':
-        return 'bg-orange-500 text-white';
-      default:
-        return 'bg-slate-600 text-white';
+    async function checkSub() {
+      setCheckingSubscription(true);
+      try {
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .select('id, is_active')
+          .eq('fan_id', user.id)
+          .eq('creator_id', (creator as any).id)
+          .maybeSingle();
+
+        if (!error && data && data.is_active) {
+          setIsSubscribed(true);
+        } else if (unlockedFromQuery) {
+          // Optimistic unlock right after Stripe redirect
+          setIsSubscribed(true);
+        }
+      } catch (err) {
+        console.error('Error checking subscription', err);
+      } finally {
+        setCheckingSubscription(false);
+      }
     }
-  };
 
-  const formatFollowers = (count: number) => {
-    if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
-    if (count >= 1000) return `${(count / 1000).toFixed(0)}K`;
-    return count.toString();
-  };
-
-  const handleBookOffer = (offerId: string) => {
-    setSelectedOfferId(offerId);
-    setShowBookingModal(true);
-  };
+    checkSub();
+  }, [user, creator, unlockedFromQuery]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -75,350 +90,381 @@ export default function CreatorProfile() {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Booking request:', { ...bookingForm, creator_id: creator.id, offer_id: selectedOfferId });
-    setBookingSuccess(true);
-    setTimeout(() => {
-      setShowBookingModal(false);
-      setBookingSuccess(false);
-      setBookingForm({ name: '', email: '', brand_project: '', message: '' });
-    }, 2000);
+  const handleUnlock = async () => {
+    if (!creator) return;
+
+    if (!user) {
+      navigate(
+        `/signup?next=${encodeURIComponent(`/creator/${handle}`)}`
+      );
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/payments/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fanId: user.id, creatorId: (creator as any).id }),
+      });
+
+      const json = await res.json();
+      if (json.url) {
+        window.location.href = json.url;
+      }
+    } catch (err) {
+      console.error('Error creating checkout session', err);
+    }
   };
 
-  const relatedCreators = mockCreators
-    .filter((c) => c.id !== creator.id && c.niches?.some((n) => creator.niches?.includes(n)))
-    .slice(0, 3);
+  // Load related creators by category
+  useEffect(() => {
+    async function loadRelated() {
+      if (!creator?.category) {
+        setRelatedCreators([]);
+        return;
+      }
 
-  const isOwnProfile = user?.id === creator.user_id;
+      const { data, error } = await supabase
+        .from('creators')
+        .select('*')
+        .neq('id', (creator as any).id)
+        .eq('category', creator.category)
+        .limit(6);
+
+      if (!error && data) {
+        setRelatedCreators(data as Creator[]);
+      }
+    }
+
+    loadRelated();
+  }, [creator]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="space-y-3 text-center">
+          <div className="w-16 h-16 rounded-full bg-slate-100 animate-pulse mx-auto" />
+          <p className="text-sm text-slate-500">Loading creator profile…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!creator) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center px-4">
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Creator not found</h2>
+          <p className="text-slate-600 mb-6">
+            This creator profile doesn't exist or has been removed.
+          </p>
+          <Link
+            to="/network"
+            className="inline-flex px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-full hover:from-blue-700 hover:to-indigo-600 transition-all"
+          >
+            Browse creators
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const isOwnProfile = user?.id === (creator as any).user_id || user?.id === (creator as any).id;
+
+  const coverUrl =
+    creator.cover_url ||
+    'https://images.pexels.com/photos/3348748/pexels-photo-3348748.jpeg?auto=compress&cs=tinysrgb&w=1200';
+
+  const avatarUrl =
+    creator.avatar_url ||
+    'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=400';
+
+  const displayName = (creator as any).display_name || (creator as any).name || 'Creator';
+  const safeHandle = (creator as any).handle?.replace(/^@/, '') || '';
+
+  const fansCount = (creator as any).subscribers ?? 0;
+  const viewsCount = (creator as any).profile_views ?? 0;
+  const postsCount = (creator as any).posts ?? 0;
+
+  const priceCents = (creator as any).subscription_price ?? 999;
+  const priceDollars = (priceCents / 100).toFixed(2);
+
+  const snapcodeUrl = (creator as any).snapcode_url || null;
+
+  // Soft enforcement: warn if bio looks like it has Snapchat username attempts
+  const bio = (creator as any).bio || '';
+  const looksLikeSnapBypass = /snap(chat)?|sc:|add me on sc|snap me/i.test(bio);
+
+  const formatCompact = (n: number) => {
+    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+    return n.toString();
+  };
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Hero / cover */}
       <div className="relative">
-        <div className="h-72 sm:h-96 overflow-hidden">
+        <div className="h-80 sm:h-96 overflow-hidden">
           <img
-            src={creator.cover_url || 'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg'}
-            alt={creator.name}
+            src={coverUrl}
+            alt={displayName}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/80" />
+        </div>
+
+        <div className="absolute top-4 left-4 flex items-center gap-2">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-black/40 text-white text-xs hover:bg-black/60"
+          >
+            <ArrowLeft className="w-3 h-3" />
+            Back
+          </button>
         </div>
 
         <div className="absolute top-4 right-4 flex items-center gap-2">
           {isOwnProfile && (
             <Link
               to="/account/settings"
-              className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all flex items-center gap-2 shadow-lg font-medium"
+              className="px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full transition-all flex items-center gap-2 shadow-lg text-xs font-medium"
             >
-              <Edit size={18} />
-              <span className="text-sm">Edit Profile</span>
+              <Edit className="w-4 h-4" />
+              Edit profile
             </Link>
           )}
           <button
             onClick={handleCopyLink}
-            className="px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg hover:bg-white transition-all flex items-center gap-2 shadow-lg"
+            className="px-3 py-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all flex items-center gap-1.5 shadow-lg text-xs font-medium"
           >
             {copiedLink ? (
               <>
-                <CheckCircle size={18} className="text-green-600" />
-                <span className="text-sm font-medium text-green-600">Copied!</span>
+                <CheckCircle className="w-4 h-4 text-emerald-600" />
+                <span className="text-emerald-600">Copied</span>
               </>
             ) : (
               <>
-                <Copy size={18} className="text-slate-700" />
-                <span className="text-sm font-medium text-slate-700">Share Profile</span>
+                <Copy className="w-4 h-4 text-slate-700" />
+                <span className="text-slate-700">Share</span>
               </>
             )}
           </button>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-10 pb-16">
-        <div className="flex flex-col md:flex-row gap-8">
-          <div className="md:w-32 flex-shrink-0">
-            {creator.avatar_url && (
-              <img
-                src={creator.avatar_url}
-                alt={creator.name}
-                className="w-32 h-32 rounded-full border-4 border-white shadow-xl"
-              />
-            )}
+        {/* Avatar + basic info */}
+        <div className="absolute inset-x-0 -bottom-16 flex flex-col items-center">
+          <div className="w-28 h-28 rounded-full border-4 border-white shadow-xl overflow-hidden bg-slate-200">
+            <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
           </div>
-
-          <div className="flex-1">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-xl p-6 sm:p-8">
-              <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                <div>
-                  <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">{creator.name}</h1>
-                  <p className="text-lg text-blue-600 font-medium mb-3">{creator.handle}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getTierColor(creator.tier)}`}>
-                      {creator.tier} Creator
-                    </span>
-                    {creator.niches?.map((niche) => (
-                      <span
-                        key={niche}
-                        className="px-3 py-1 text-sm font-medium rounded-full bg-blue-50 text-blue-600"
-                      >
-                        {niche}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-y border-slate-100">
-                <div>
-                  <div className="flex items-center gap-2 text-slate-500 mb-1">
-                    <Users size={18} />
-                    <span className="text-xs uppercase tracking-wide font-medium">Followers</span>
-                  </div>
-                  <p className="text-2xl font-bold text-slate-900">{formatFollowers(creator.followers)}</p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 text-slate-500 mb-1">
-                    <TrendingUp size={18} />
-                    <span className="text-xs uppercase tracking-wide font-medium">Engagement</span>
-                  </div>
-                  <p className="text-2xl font-bold text-slate-900">{creator.engagement_rate}%</p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 text-slate-500 mb-1">
-                    <Eye size={18} />
-                    <span className="text-xs uppercase tracking-wide font-medium">Avg Views</span>
-                  </div>
-                  <p className="text-2xl font-bold text-slate-900">
-                    {formatFollowers(creator.avg_story_views || 0)}
-                  </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 text-slate-500 mb-1">
-                    <MapPin size={18} />
-                    <span className="text-xs uppercase tracking-wide font-medium">Region</span>
-                  </div>
-                  <p className="text-lg font-semibold text-slate-900">{creator.region}</p>
-                </div>
-              </div>
-            </div>
+          <div className="mt-3 text-center text-white px-4">
+            <h1 className="text-2xl sm:text-3xl font-bold">{displayName}</h1>
+            {safeHandle && (
+              <p className="text-sm text-white/80 mt-0.5">
+                {/* No @ emphasis to prevent Snapchat handle confusion */}
+                {safeHandle}
+              </p>
+            )}
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 mt-8">
-          <div className="space-y-8">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">About</h2>
-              <div className="prose prose-slate max-w-none">
-                {creator.about?.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="text-slate-600 leading-relaxed mb-4">
-                    {paragraph}
+      {/* Main content */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 space-y-8">
+        {/* Stats + subscribe */}
+        <section className="bg-white rounded-3xl shadow-md border border-slate-100 p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            {/* Stats */}
+            <div className="flex justify-center sm:justify-start gap-8">
+              <div className="text-center">
+                <p className="text-xs text-slate-500 mb-1">Fans</p>
+                <div className="flex items-center justify-center gap-1.5">
+                  <Users className="w-4 h-4 text-slate-400" />
+                  <p className="text-lg font-semibold text-slate-900">
+                    {formatCompact(fansCount)}
                   </p>
-                ))}
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-slate-500 mb-1">Profile views</p>
+                <div className="flex items-center justify-center gap-1.5">
+                  <Eye className="w-4 h-4 text-slate-400" />
+                  <p className="text-lg font-semibold text-slate-900">
+                    {formatCompact(viewsCount)}
+                  </p>
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-slate-500 mb-1">Posts</p>
+                <p className="text-lg font-semibold text-slate-900">
+                  {postsCount}
+                </p>
               </div>
             </div>
 
-            {creator.content_types && creator.content_types.length > 0 && (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4">Content Focus</h2>
-                <div className="flex flex-wrap gap-2">
-                  {creator.content_types.map((type) => (
-                    <span
-                      key={type}
-                      className="px-4 py-2 bg-slate-50 text-slate-700 rounded-lg text-sm font-medium"
-                    >
-                      {type}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {creator.top_regions && creator.top_regions.length > 0 && (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sm:p-8">
-                <h2 className="text-2xl font-bold text-slate-900 mb-4">Audience Highlights</h2>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                    <span className="text-slate-600">
-                      <span className="font-semibold">Top Regions:</span> {creator.top_regions.join(', ')}
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                    <span className="text-slate-600">
-                      <span className="font-semibold">Primary Age Group:</span> 18-34 years old
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                    <span className="text-slate-600">
-                      <span className="font-semibold">Most Active:</span> Evenings & weekends
-                    </span>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-              <h2 className="text-xl font-bold text-slate-900 mb-6">Shoppable Offers</h2>
-
-              {creatorOffers.length > 0 ? (
-                <div className="space-y-4">
-                  {creatorOffers.map((offer) => (
-                    <OfferCard
-                      key={offer.id}
-                      title={offer.title}
-                      description={offer.description}
-                      priceLabel={offer.price_label}
-                      deliveryWindow={offer.delivery_window}
-                      bestFor={offer.best_for}
-                      onBook={() => handleBookOffer(offer.id)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-slate-500 text-center py-8">
-                  This creator hasn't set up offers yet. Check back soon!
-                </p>
+            {/* Subscribe / QR unlock */}
+            <div className="flex flex-col items-center sm:items-end gap-2">
+              {!isOwnProfile && !isSubscribed && (
+                <>
+                  <button
+                    onClick={handleUnlock}
+                    disabled={checkingSubscription}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-full
+                               bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold
+                               shadow-md hover:brightness-110 disabled:opacity-60"
+                  >
+                    <Lock className="w-4 h-4" />
+                    {checkingSubscription
+                      ? 'Checking subscription…'
+                      : `Unlock Snapchat • $${priceDollars}/mo`}
+                  </button>
+                  <p className="text-[11px] text-slate-500 text-right max-w-xs">
+                    Secure payments via Stripe. Snapreme takes a 10% platform fee. Cancel anytime.
+                  </p>
+                </>
               )}
 
-              <div className="mt-6 pt-6 border-t border-slate-100">
-                <p className="text-xs text-slate-500 text-center">
-                  Payments processed securely via Stripe (coming soon)
+              {isOwnProfile && (
+                <div className="text-right space-y-1">
+                  <Link
+                    to="/dashboard/monetization"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full
+                               bg-slate-900 text-white text-xs font-semibold shadow hover:bg-slate-800"
+                  >
+                    <Lock className="w-3 h-3" />
+                    Manage pricing & payouts
+                  </Link>
+                  <p className="text-[11px] text-slate-500 max-w-xs">
+                    This is how fans unlock your Snapchat premium access. Do not put your Snapchat username
+                    in your profile – use the QR unlock only.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* About + QR section */}
+        <section className="grid grid-cols-1 md:grid-cols-[1.6fr_minmax(0,1.1fr)] gap-6 md:gap-8">
+          {/* About */}
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 sm:p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-slate-900">About</h2>
+            {bio ? (
+              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                {bio}
+              </p>
+            ) : (
+              <p className="text-sm text-slate-500">
+                This creator hasn&apos;t added a bio yet.
+              </p>
+            )}
+
+            {isOwnProfile && looksLikeSnapBypass && (
+              <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-3 py-2.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5" />
+                <p className="text-xs text-amber-800">
+                  It looks like you might be mentioning Snapchat directly in your bio. To keep Snapreme as
+                  the secure middle layer, please avoid putting your Snapchat username or &quot;add me on SC&quot; here.
+                  Fans should only get access via the unlock + QR flow.
                 </p>
               </div>
+            )}
+          </div>
+
+          {/* Snapchat QR section */}
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col items-center">
+            <div className="flex items-center gap-2 mb-3">
+              <QrCode className="w-5 h-5 text-slate-800" />
+              <h2 className="text-sm font-semibold text-slate-900">
+                Premium Snapchat access
+              </h2>
             </div>
 
-            {creator.snapcode_url && (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-slate-900 mb-3">Connect on Snapchat</h3>
-                <div className="bg-slate-50 rounded-xl p-4 flex items-center justify-center">
+            {!snapcodeUrl && isOwnProfile && (
+              <div className="text-center text-xs text-slate-500">
+                <p className="mb-2">
+                  Add your Snapchat QR code in your account settings so fans can unlock it here after subscribing.
+                </p>
+                <Link
+                  to="/account/settings"
+                  className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-semibold"
+                >
+                  Add Snapchat QR
+                </Link>
+              </div>
+            )}
+
+            {!isOwnProfile && !isSubscribed && (
+              <div className="flex flex-col items-center justify-center flex-1 w-full">
+                <div className="w-40 h-40 rounded-3xl bg-slate-100 flex items-center justify-center mb-3">
+                  <Lock className="w-10 h-10 text-slate-400" />
+                </div>
+                <p className="text-xs text-slate-500 text-center max-w-xs">
+                  Subscribe to unlock this creator&apos;s Snapchat QR code and access their premium content directly in Snapchat.
+                </p>
+              </div>
+            )}
+
+            {(isSubscribed || isOwnProfile) && snapcodeUrl && (
+              <div className="flex flex-col items-center w-full mt-1">
+                <div className="bg-slate-50 rounded-3xl p-4 flex items-center justify-center w-full">
                   <img
-                    src={creator.snapcode_url}
-                    alt="Snapcode"
-                    className="w-48 h-48 object-contain"
+                    src={snapcodeUrl}
+                    alt="Snapchat QR code"
+                    className="w-40 h-40 sm:w-48 sm:h-48 object-contain"
                   />
                 </div>
-                <p className="text-xs text-slate-500 text-center mt-3">Scan to add on Snapchat</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {relatedCreators.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">More creators like {creator.name}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedCreators.map((relatedCreator) => (
-                <Link
-                  key={relatedCreator.id}
-                  to={`/creator/${relatedCreator.handle.replace('@', '')}`}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all overflow-hidden group"
-                >
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img
-                      src={relatedCreator.cover_url || ''}
-                      alt={relatedCreator.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-slate-900 mb-1">{relatedCreator.name}</h3>
-                    <p className="text-sm text-blue-600 mb-2">{relatedCreator.handle}</p>
-                    <p className="text-xs text-slate-600 line-clamp-2">{relatedCreator.short_bio}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {showBookingModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setShowBookingModal(false)}
-              className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full transition-colors"
-            >
-              <X size={20} />
-            </button>
-
-            {bookingSuccess ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle size={32} className="text-green-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Request Sent!</h3>
-                <p className="text-slate-600">
-                  {creator.name} will review your collaboration request and get back to you soon.
+                <p className="text-[11px] text-slate-500 text-center mt-2">
+                  Scan with Snapchat to connect. Do not share this publicly – it&apos;s reserved for paying fans.
                 </p>
               </div>
-            ) : (
-              <>
-                <h3 className="text-2xl font-bold text-slate-900 mb-2">Request Collaboration</h3>
-                <p className="text-slate-600 mb-6">Send a collaboration request to {creator.name}</p>
-
-                <form onSubmit={handleBookingSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-900 mb-2">Your Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={bookingForm.name}
-                      onChange={(e) => setBookingForm({ ...bookingForm, name: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="John Doe"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-900 mb-2">Email *</label>
-                    <input
-                      type="email"
-                      required
-                      value={bookingForm.email}
-                      onChange={(e) => setBookingForm({ ...bookingForm, email: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="you@example.com"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-900 mb-2">Brand / Project *</label>
-                    <input
-                      type="text"
-                      required
-                      value={bookingForm.brand_project}
-                      onChange={(e) => setBookingForm({ ...bookingForm, brand_project: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Your brand or project name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-900 mb-2">Message</label>
-                    <textarea
-                      value={bookingForm.message}
-                      onChange={(e) => setBookingForm({ ...bookingForm, message: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] resize-y"
-                      placeholder="Tell the creator about your collaboration idea..."
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all shadow-md hover:shadow-lg"
-                  >
-                    Send Request
-                  </button>
-                </form>
-              </>
             )}
           </div>
-        </div>
-      )}
+        </section>
+
+        {/* Related creators */}
+        {relatedCreators.length > 0 && (
+          <section className="mt-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">
+              More creators like {displayName}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {relatedCreators.map((rc) => {
+                const rcCover =
+                  (rc as any).cover_url ||
+                  'https://images.pexels.com/photos/1181690/pexels-photo-1181690.jpeg?auto=compress&cs=tinysrgb&w=800';
+                const rcName = (rc as any).display_name || (rc as any).name;
+                const rcHandle = ((rc as any).handle || '').replace(/^@/, '');
+
+                return (
+                  <Link
+                    key={(rc as any).id}
+                    to={`/creator/${rcHandle}`}
+                    className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all overflow-hidden group"
+                  >
+                    <div className="aspect-[4/3] overflow-hidden">
+                      <img
+                        src={rcCover}
+                        alt={rcName}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-slate-900 mb-0.5 line-clamp-1">{rcName}</h3>
+                      {rcHandle && (
+                        <p className="text-xs text-slate-500 mb-1 line-clamp-1">{rcHandle}</p>
+                      )}
+                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                        {(rc as any).short_bio || 'Premium creator on Snapreme.'}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   );
 }
