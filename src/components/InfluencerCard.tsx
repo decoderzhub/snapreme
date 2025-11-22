@@ -1,11 +1,13 @@
-import { MessageCircle, BadgeCheck } from 'lucide-react';
+import { MessageCircle, BadgeCheck, Star } from 'lucide-react';
 import { Influencer } from '../types/influencer';
 
 interface InfluencerCardProps {
   influencer: Influencer;
+  onFavoriteClick?: () => void;
+  isFavorited?: boolean;
 }
 
-export default function InfluencerCard({ influencer }: InfluencerCardProps) {
+export default function InfluencerCard({ influencer, onFavoriteClick, isFavorited = false }: InfluencerCardProps) {
   return (
     <div className="bg-white rounded-2xl shadow-card border border-slate-100 hover:shadow-card-hover hover:-translate-y-1 hover:shadow-glow transition-all duration-300 ease-out overflow-hidden group">
       <div className="relative aspect-[4/5] overflow-hidden">
@@ -21,11 +23,25 @@ export default function InfluencerCard({ influencer }: InfluencerCardProps) {
             </span>
           </div>
         )}
-        {influencer.verified && (
-          <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          {onFavoriteClick && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onFavoriteClick();
+              }}
+              className="p-2 bg-black/60 hover:bg-black/80 rounded-full transition-colors"
+              aria-label="Toggle favorite"
+            >
+              <Star
+                className={`w-4 h-4 ${isFavorited ? 'fill-yellow-400 text-yellow-400' : 'text-white'}`}
+              />
+            </button>
+          )}
+          {influencer.verified && (
             <BadgeCheck className="w-6 h-6 text-blue-600 fill-white" />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <div className="p-6">

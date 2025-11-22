@@ -1,5 +1,6 @@
 import { Creator } from '../types/database';
 import { Heart } from 'lucide-react';
+import { useFavorites } from '../contexts/FavoritesContext';
 
 interface Props {
   creator: Creator;
@@ -7,11 +8,18 @@ interface Props {
 }
 
 export default function CreatorCard({ creator, onClick }: Props) {
+  const { isFavorite, toggleFavorite } = useFavorites();
+
   if (!creator.card_image_url || !creator.avatar_url) return null;
 
   const cover = creator.card_image_url;
-
   const price = creator.subscription_price || 5;
+  const favorited = isFavorite(creator.id);
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(creator.id);
+  };
 
   return (
     <button
@@ -44,6 +52,18 @@ export default function CreatorCard({ creator, onClick }: Props) {
               </span>
             )}
           </div>
+        </div>
+
+        <div className="absolute top-3 left-3">
+          <button
+            onClick={handleFavoriteClick}
+            className="p-2 bg-black/60 hover:bg-black/80 rounded-full transition-colors"
+            aria-label="Toggle favorite"
+          >
+            <Heart
+              className={`w-4 h-4 ${favorited ? 'fill-pink-500 text-pink-500' : 'text-white'}`}
+            />
+          </button>
         </div>
 
         <div className="absolute top-3 right-3 px-3 py-1 bg-black/60 text-white text-xs rounded-full flex items-center gap-1">

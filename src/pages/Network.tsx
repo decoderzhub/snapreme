@@ -4,13 +4,15 @@ import { supabase } from '../lib/supabase';
 import { Creator } from '../types/database';
 import CreatorCard from '../components/CreatorCard';
 import CreatorModal from '../components/CreatorModal';
+import { useFavorites } from '../contexts/FavoritesContext';
 
 export default function Network() {
   const [creators, setCreators] = useState<Creator[]>([]);
   const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
   const [search, setSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState<'for-you' | 'trending' | 'new' | 'rising'>('for-you');
+  const [activeCategory, setActiveCategory] = useState<'for-you' | 'trending' | 'new' | 'rising' | 'favorites'>('for-you');
   const [loading, setLoading] = useState(true);
+  const { favorites } = useFavorites();
 
   useEffect(() => {
     async function fetchCreators() {
@@ -48,6 +50,10 @@ export default function Network() {
   const filteredCreators = useMemo(() => {
     let list = [...completeCreators];
 
+    if (activeCategory === 'favorites') {
+      list = list.filter((creator) => favorites.has(creator.id));
+    }
+
     if (search.trim()) {
       const s = search.toLowerCase();
       list = list.filter(
@@ -72,6 +78,8 @@ export default function Network() {
       case 'rising':
         list.sort((a, b) => b.engagement_rate - a.engagement_rate);
         break;
+      case 'favorites':
+        break;
       case 'for-you':
       default:
         list.sort((a, b) => {
@@ -83,7 +91,7 @@ export default function Network() {
     }
 
     return list;
-  }, [completeCreators, search, activeCategory]);
+  }, [completeCreators, search, activeCategory, favorites]);
 
   const topCreators = useMemo(
     () => [...completeCreators].sort((a, b) => b.followers - a.followers).slice(0, 5),
@@ -128,6 +136,7 @@ export default function Network() {
                 { id: 'trending', label: 'Trending' },
                 { id: 'new', label: 'New' },
                 { id: 'rising', label: 'Rising' },
+                { id: 'favorites', label: 'Favorites' },
               ].map((chip) => (
                 <button
                   key={chip.id}
