@@ -12,6 +12,7 @@ import Pricing from './pages/Pricing';
 import CaseStudies from './pages/CaseStudies';
 import AccountSettings from './pages/AccountSettings';
 import Onboarding from './pages/Onboarding';
+import FanOnboarding from './pages/FanOnboarding';
 import Dashboard from './pages/Dashboard';
 import Monetization from './pages/Monetization';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -32,14 +33,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        <Route
-          path="/network"
-          element={
-            <ProtectedRoute>
-              <Network />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/network" element={<Network />} />
 
         <Route
           path="/dashboard"
@@ -70,6 +64,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Onboarding />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/onboarding/fan"
+          element={
+            <ProtectedRoute>
+              <FanOnboarding />
             </ProtectedRoute>
           }
         />

@@ -5,8 +5,10 @@ import { Creator } from '../types/database';
 import CreatorCard from '../components/CreatorCard';
 import CreatorModal from '../components/CreatorModal';
 import { useFavorites } from '../contexts/FavoritesContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Network() {
+  const { user } = useAuth();
   const [creators, setCreators] = useState<Creator[]>([]);
   const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
   const [search, setSearch] = useState('');
@@ -136,8 +138,10 @@ export default function Network() {
                 { id: 'trending', label: 'Trending' },
                 { id: 'new', label: 'New' },
                 { id: 'rising', label: 'Rising' },
-                { id: 'favorites', label: 'Favorites' },
-              ].map((chip) => (
+                { id: 'favorites', label: 'Favorites', requiresAuth: true },
+              ]
+                .filter((chip) => !chip.requiresAuth || user)
+                .map((chip) => (
                 <button
                   key={chip.id}
                   onClick={() => setActiveCategory(chip.id as any)}
