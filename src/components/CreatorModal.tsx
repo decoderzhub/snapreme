@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { X, Lock, MessageCircle } from 'lucide-react';
 import { Creator } from '../types/database';
 
@@ -7,12 +8,20 @@ interface Props {
 }
 
 export default function CreatorModal({ creator, onClose }: Props) {
+  const [isUnlocked, setIsUnlocked] = useState(false);
+
   const cover =
     creator.cover_url ||
     creator.avatar_url ||
     'https://images.pexels.com/photos/3348748/pexels-photo-3348748.jpeg';
 
   const price = creator.subscription_price || 5;
+
+  const snapcodeUrl = creator.snapcode_url || 'https://images.pexels.com/photos/6858618/pexels-photo-6858618.jpeg?auto=compress&cs=tinysrgb&w=400';
+
+  const handleUnlock = () => {
+    setIsUnlocked(true);
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -70,15 +79,41 @@ export default function CreatorModal({ creator, onClose }: Props) {
             </div>
           )}
 
-          <button className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-full shadow-md hover:brightness-105 transition-all font-semibold">
-            <Lock className="w-4 h-4" />
-            Unlock all content — ${price}/month
-          </button>
+          <div className="relative bg-slate-50 rounded-2xl p-4 flex items-center justify-center">
+            <img
+              src={snapcodeUrl}
+              alt="Snapcode"
+              className={`w-32 h-32 object-contain transition-all duration-300 ${
+                isUnlocked ? '' : 'blur-xl'
+              }`}
+            />
+            {!isUnlocked && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Lock className="w-8 h-8 text-slate-400" />
+              </div>
+            )}
+          </div>
 
-          <button className="w-full flex items-center justify-center gap-2 bg-slate-100 text-slate-700 py-2.5 rounded-full hover:bg-slate-200 transition-all">
-            <MessageCircle className="w-4 h-4" />
-            Message (coming soon)
-          </button>
+          {!isUnlocked ? (
+            <button
+              onClick={handleUnlock}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-full shadow-md hover:brightness-105 transition-all font-semibold"
+            >
+              <Lock className="w-4 h-4" />
+              Unlock all content — ${price}/month
+            </button>
+          ) : (
+            <button className="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-full shadow-md font-semibold">
+              <MessageCircle className="w-4 h-4" />
+              Message on Snapchat
+            </button>
+          )}
+
+          {isUnlocked && (
+            <p className="text-xs text-center text-slate-500">
+              Scan the Snapcode above to add {creator.display_name || creator.name} on Snapchat
+            </p>
+          )}
         </div>
       </div>
     </div>
