@@ -549,33 +549,57 @@ export default function AccountSettings() {
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Username</label>
-                  <div className="flex items-center gap-2">
-                    <span className="px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-l-lg text-slate-700 font-medium">
-                      @
-                    </span>
-                    <input
-                      type="text"
-                      value={fanUsername}
-                      disabled
-                      className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-r-lg text-slate-600 cursor-not-allowed"
-                      placeholder="username"
-                    />
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Username cannot be changed after creation
-                  </p>
-                </div>
+                <div className="pt-4 border-t border-slate-200">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4">Basic Information</h3>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                  <input
-                    type="text"
-                    value={user?.email || ''}
-                    disabled
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-600"
-                  />
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Username <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={fanUsername}
+                        disabled
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 cursor-not-allowed"
+                        placeholder="username"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">
+                        Letters, numbers, and underscores only
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Handle <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <span className="px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-l-lg text-slate-700 font-medium">
+                          @
+                        </span>
+                        <input
+                          type="text"
+                          value={fanUsername}
+                          disabled
+                          className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-r-lg text-slate-600 cursor-not-allowed"
+                          placeholder="username"
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Username cannot be changed after creation
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                      <input
+                        type="text"
+                        value={user?.email || ''}
+                        disabled
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-600"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <button
