@@ -7,7 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
-  signUp: (email: string, password: string, userData: { name: string; handle: string }) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
@@ -73,34 +73,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, userData: { name: string; handle: string }) => {
+  const signUp = async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
       });
 
       if (error) throw error;
-
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('creators')
-          .insert({
-            user_id: data.user.id,
-            name: userData.name,
-            handle: userData.handle,
-            tier: 'Rising',
-            followers: 0,
-            engagement_rate: 0,
-            starting_rate: 0,
-            avatar_url: null,
-            cover_url: null,
-            card_image_url: null,
-            onboarding_complete: false,
-          });
-
-        if (profileError) throw profileError;
-      }
 
       return { error: null };
     } catch (error) {

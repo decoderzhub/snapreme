@@ -53,7 +53,7 @@ export default function Signup() {
 
     setLoading(true);
 
-    const { error } = await signUp(formData.email, formData.password, {});
+    const { error } = await signUp(formData.email, formData.password);
 
     if (error) {
       setError(error.message);
