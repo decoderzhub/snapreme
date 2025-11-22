@@ -474,22 +474,22 @@ export default function AccountSettings() {
           </button>
         </div>
 
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <span className="text-sm">{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-start gap-2">
-            <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <span className="text-sm">Profile updated successfully!</span>
-          </div>
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start gap-2">
+                <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-start gap-2">
+                <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <span className="text-sm">Profile updated successfully!</span>
+              </div>
+            )}
+
             <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-lg font-semibold text-slate-900">Profile Completeness</h3>
@@ -865,54 +865,54 @@ export default function AccountSettings() {
               )}
             </div>
           </section>
-        </div>
 
-        <div className="mt-8 flex items-center justify-between gap-4 sticky bottom-6 bg-white rounded-xl shadow-lg border border-slate-100 p-4">
-          <button
-            type="button"
-            onClick={() => navigate(`/creator/${profile.handle.replace('@', '')}`)}
-            className="flex items-center gap-2 px-6 py-3 text-slate-700 font-semibold hover:text-slate-900 transition-colors"
-          >
-            <Eye className="w-5 h-5" />
-            Preview Profile
-          </button>
+            <div className="flex items-center justify-between gap-4 bg-white rounded-xl shadow-lg border border-slate-100 p-4">
+              <button
+                type="button"
+                onClick={() => navigate(`/creator/${profile.handle.replace('@', '')}`)}
+                className="flex items-center gap-2 px-6 py-3 text-slate-700 font-semibold hover:text-slate-900 transition-colors"
+              >
+                <Eye className="w-5 h-5" />
+                Preview Profile
+              </button>
 
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => {
-                if (hasUnsavedChanges) {
-                  if (confirm('Discard unsaved changes?')) {
-                    loadProfile();
-                    setHasUnsavedChanges(false);
-                  }
-                } else {
-                  navigate(-1);
-                }
-              }}
-              className="px-6 py-3 text-slate-600 font-semibold hover:text-slate-900 transition-colors"
-            >
-              Cancel
-            </button>
+              <div className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hasUnsavedChanges) {
+                      if (confirm('Discard unsaved changes?')) {
+                        loadProfile();
+                        setHasUnsavedChanges(false);
+                      }
+                    } else {
+                      navigate(-1);
+                    }
+                  }}
+                  className="px-6 py-3 text-slate-600 font-semibold hover:text-slate-900 transition-colors"
+                >
+                  Cancel
+                </button>
 
-            <button
-              onClick={handleSave}
-              disabled={saving || !hasUnsavedChanges}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-5 h-5" />
-                  Save Changes
-                </>
-              )}
-            </button>
-          </div>
+                <button
+                  onClick={handleSave}
+                  disabled={saving || !hasUnsavedChanges}
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? (
+                    <>
+                      <Loader className="w-5 h-5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="hidden lg:block lg:col-span-1">
