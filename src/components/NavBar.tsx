@@ -14,18 +14,21 @@ export default function NavBar() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [creatorHandle, setCreatorHandle] = useState<string | null>(null);
+
   useEffect(() => {
     if (!user) {
       setIsCreator(false);
       setIsStripeConnected(false);
       setNeedsOnboarding(false);
+      setCreatorHandle(null);
       return;
     }
 
     async function checkCreatorStatus() {
       const { data } = await supabase
         .from('creators')
-        .select('id, is_stripe_connected, onboarding_complete')
+        .select('id, is_stripe_connected, onboarding_complete, handle')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -33,10 +36,12 @@ export default function NavBar() {
         setIsCreator(true);
         setIsStripeConnected(!!data.is_stripe_connected);
         setNeedsOnboarding(!data.onboarding_complete);
+        setCreatorHandle(data.handle?.replace('@', '') || null);
       } else {
         setIsCreator(false);
         setIsStripeConnected(false);
         setNeedsOnboarding(false);
+        setCreatorHandle(null);
       }
     }
 
@@ -148,6 +153,18 @@ export default function NavBar() {
                           </button>
                         )}
                       </div>
+                    )}
+                    {isCreator && creatorHandle && (
+                      <button
+                        onClick={() => {
+                          navigate(`/creator/${creatorHandle}`);
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
+                      >
+                        <User className="w-4 h-4" />
+                        <span>View my profile</span>
+                      </button>
                     )}
                     <button
                       onClick={() => {
@@ -293,6 +310,18 @@ export default function NavBar() {
                       </button>
                     )}
                   </div>
+                )}
+                {isCreator && creatorHandle && (
+                  <button
+                    onClick={() => {
+                      navigate(`/creator/${creatorHandle}`);
+                      setIsMenuOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-50"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>View my profile</span>
+                  </button>
                 )}
                 <button
                   onClick={() => {

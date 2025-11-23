@@ -1,16 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Search, Flame, Star, TrendingUp, Users } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Creator } from '../types/database';
 import CreatorCard from '../components/CreatorCard';
-import CreatorModal from '../components/CreatorModal';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Network() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [creators, setCreators] = useState<Creator[]>([]);
-  const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<'for-you' | 'trending' | 'new' | 'rising' | 'favorites'>('for-you');
   const [loading, setLoading] = useState(true);
@@ -178,7 +178,6 @@ export default function Network() {
                   <CreatorCard
                     key={creator.id}
                     creator={creator}
-                    onClick={() => setSelectedCreator(creator)}
                   />
                 ))
               )}
@@ -203,10 +202,12 @@ export default function Network() {
                 </p>
 
                 <div className="space-y-3">
-                  {topCreators.slice(0, 3).map((creator) => (
+                  {topCreators.slice(0, 3).map((creator) => {
+                    const cleanHandle = creator.handle?.replace('@', '') || '';
+                    return (
                     <button
                       key={creator.id}
-                      onClick={() => setSelectedCreator(creator)}
+                      onClick={() => cleanHandle && navigate(`/creator/${cleanHandle}`)}
                       className="w-full flex items-center gap-3 text-left hover:bg-slate-50 rounded-2xl px-2 py-2.5"
                     >
                       <img
@@ -226,7 +227,7 @@ export default function Network() {
                         {creator.followers.toLocaleString()} fans
                       </span>
                     </button>
-                  ))}
+                  );})}
                 </div>
               </div>
 
@@ -237,13 +238,15 @@ export default function Network() {
                 </div>
 
                 <div className="space-y-3">
-                  {risingCreators.map((creator) => (
+                  {risingCreators.map((creator) => {
+                    const cleanHandle = creator.handle?.replace('@', '') || '';
+                    return (
                     <div
                       key={creator.id}
                       className="w-full flex items-center gap-3 hover:bg-slate-50 rounded-2xl px-2 py-2.5"
                     >
                       <button
-                        onClick={() => setSelectedCreator(creator)}
+                        onClick={() => cleanHandle && navigate(`/creator/${cleanHandle}`)}
                         className="flex items-center gap-3 flex-1 text-left"
                       >
                         <img
@@ -277,7 +280,7 @@ export default function Network() {
                         />
                       </button>
                     </div>
-                  ))}
+                  );})}
                 </div>
               </div>
             </aside>
@@ -285,12 +288,6 @@ export default function Network() {
         </section>
       </div>
 
-      {selectedCreator && (
-        <CreatorModal
-          creator={selectedCreator}
-          onClose={() => setSelectedCreator(null)}
-        />
-      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { Creator } from '../types/database';
 import { Heart, TrendingUp, Star, Crown } from 'lucide-react';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   creator: Creator;
@@ -11,6 +12,7 @@ interface Props {
 export default function CreatorCard({ creator, onClick }: Props) {
   const { user } = useAuth();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const navigate = useNavigate();
 
   if (!creator.card_image_url || !creator.avatar_url) return null;
 
@@ -47,9 +49,20 @@ export default function CreatorCard({ creator, onClick }: Props) {
   const tierStyle = getTierStyle(creator.tier);
   const TierIcon = tierStyle.icon;
 
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      const cleanHandle = creator.handle?.replace('@', '') || '';
+      if (cleanHandle) {
+        navigate(`/creator/${cleanHandle}`);
+      }
+    }
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleCardClick}
       className="w-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden
                  hover:shadow-md transition-all active:scale-[0.99]"
     >
