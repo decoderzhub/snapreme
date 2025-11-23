@@ -10,6 +10,7 @@ interface TikTokTeaserLayoutProps {
   creator: Creator;
   isSubscribed: boolean;
   fanId?: string;
+  isOwnProfile?: boolean;
   unlockedPostIds: Set<string>;
   onUnlockPost: (postId: string) => void;
   onViewPackage: (pkg: ContentPackage) => void;
@@ -21,6 +22,7 @@ export function TikTokTeaserLayout({
   creator,
   isSubscribed,
   fanId,
+  isOwnProfile = false,
   unlockedPostIds,
   onUnlockPost,
   onViewPackage,
@@ -50,6 +52,7 @@ export function TikTokTeaserLayout({
         onSelectPost={handleSelectPost}
         isSubscribed={isSubscribed}
         unlockedPostIds={unlockedPostIds}
+        isOwnProfile={isOwnProfile}
       />
 
       <MainVideoPlayer
@@ -57,6 +60,7 @@ export function TikTokTeaserLayout({
         creator={creator}
         isSubscribed={isSubscribed}
         isUnlocked={activePost ? isPostUnlocked(activePost) : false}
+        isOwnProfile={isOwnProfile}
         onUnlock={onUnlockPost}
       />
 

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Lock, Play, Pause, Heart, MessageCircle, DollarSign, MoreVertical } from 'lucide-react';
+import { InfoTooltip } from '../InfoTooltip';
+import { EmptyStateGuide } from './EmptyStateGuide';
 import type { Post, Creator } from '../../types/database';
 
 interface MainVideoPlayerProps {
@@ -7,6 +9,7 @@ interface MainVideoPlayerProps {
   creator: Creator;
   isSubscribed: boolean;
   isUnlocked: boolean;
+  isOwnProfile?: boolean;
   onUnlock: (postId: string) => void;
   onLike?: (postId: string) => void;
   onTip?: (postId: string) => void;
@@ -17,6 +20,7 @@ export function MainVideoPlayer({
   creator,
   isSubscribed,
   isUnlocked,
+  isOwnProfile = false,
   onUnlock,
   onLike,
   onTip,
@@ -26,16 +30,8 @@ export function MainVideoPlayer({
 
   if (!post) {
     return (
-      <div className="relative rounded-2xl bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-neutral-950 overflow-hidden flex items-center justify-center h-[85vh] backdrop-blur-lg border border-white/5">
-        <div className="text-center space-y-4 px-6">
-          <div className="w-20 h-20 mx-auto rounded-full bg-white/5 flex items-center justify-center">
-            <Play className="w-10 h-10 text-white/40" />
-          </div>
-          <div>
-            <h3 className="text-white text-lg font-semibold mb-2">No content yet</h3>
-            <p className="text-white/60 text-sm">Creator hasn't posted • Follow to get notified</p>
-          </div>
-        </div>
+      <div className="relative rounded-2xl overflow-hidden flex items-center justify-center h-[85vh]">
+        <EmptyStateGuide isOwnProfile={isOwnProfile} />
       </div>
     );
   }

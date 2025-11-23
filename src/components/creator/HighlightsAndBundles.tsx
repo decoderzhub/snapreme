@@ -1,4 +1,5 @@
 import { Sparkles, Package, Tag } from 'lucide-react';
+import { InfoTooltip } from '../InfoTooltip';
 import type { Post, ContentPackage } from '../../types/database';
 
 interface HighlightsAndBundlesProps {
@@ -49,6 +50,7 @@ export function HighlightsAndBundles({
           <div className="flex items-center gap-2 px-2">
             <Sparkles className="w-4 h-4 text-yellow-400" />
             <h3 className="text-sm font-semibold text-white">Highlights</h3>
+            <InfoTooltip content="Your most-liked content. This helps fans discover your best work first." />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -101,6 +103,7 @@ export function HighlightsAndBundles({
           <div className="flex items-center gap-2 px-2">
             <Tag className="w-4 h-4 text-blue-400" />
             <h3 className="text-sm font-semibold text-white">Popular themes</h3>
+            <InfoTooltip content="Hashtags from your posts. Use consistent tags to help fans find specific content types." />
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -122,6 +125,7 @@ export function HighlightsAndBundles({
           <div className="flex items-center gap-2 px-2">
             <Package className="w-4 h-4 text-emerald-400" />
             <h3 className="text-sm font-semibold text-white">Bundles & Deals</h3>
+            <InfoTooltip content="Package multiple posts together at a discounted price. Great for selling themed collections or premium content sets." />
           </div>
 
           <div className="space-y-3">

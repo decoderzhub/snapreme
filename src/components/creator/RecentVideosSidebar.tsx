@@ -1,4 +1,5 @@
 import { Eye, Heart, Lock, FileText } from 'lucide-react';
+import { InfoTooltip } from '../InfoTooltip';
 import type { Post } from '../../types/database';
 
 interface RecentVideosSidebarProps {
@@ -7,6 +8,7 @@ interface RecentVideosSidebarProps {
   onSelectPost: (post: Post) => void;
   isSubscribed: boolean;
   unlockedPostIds: Set<string>;
+  isOwnProfile?: boolean;
 }
 
 export function RecentVideosSidebar({
@@ -15,6 +17,7 @@ export function RecentVideosSidebar({
   onSelectPost,
   isSubscribed,
   unlockedPostIds,
+  isOwnProfile = false,
 }: RecentVideosSidebarProps) {
   const formatCount = (count: number) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
@@ -42,8 +45,11 @@ export function RecentVideosSidebar({
 
   return (
     <div className="h-[85vh] overflow-y-auto rounded-2xl bg-neutral-950/70 backdrop-blur-lg p-4 space-y-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
-      <h3 className="text-sm font-semibold text-white px-2 flex items-center justify-between">
-        <span>Most recent videos</span>
+      <h3 className="text-sm font-semibold text-white px-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <span>Most recent videos</span>
+          <InfoTooltip content="Your newest content appears here. Click any thumbnail to preview it in the center player. Fans see this chronological feed when they visit your profile." />
+        </div>
         <span className="text-xs text-neutral-400 font-normal">{posts.length}</span>
       </h3>
 

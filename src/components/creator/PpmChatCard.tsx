@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MessageCircle, Coins, Send, Star, DollarSign, Gift as GiftIcon } from 'lucide-react';
+import { InfoTooltip } from '../InfoTooltip';
 import type { PpmMessage, Gift } from '../../types/database';
 import { sendPaidMessage, sendTip, sendGift } from '../../lib/payments';
 
@@ -88,6 +89,7 @@ export function PpmChatCard({
         <div className="flex items-center gap-2">
           <MessageCircle className="w-5 h-5 text-slate-700" />
           <h3 className="text-lg font-semibold text-slate-900">Direct Message</h3>
+          <InfoTooltip content="Send paid messages directly to the creator. Each message costs coins. Priority messages (20 coins) get highlighted for better visibility." />
         </div>
         <button
           onClick={onBuyCoins}
