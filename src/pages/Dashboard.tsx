@@ -229,6 +229,15 @@ export default function Dashboard() {
                 </p>
               </div>
 
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Link
+                  to={`/creator/${handleSlug}`}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-full transition-all shadow-md"
+                >
+                  <Eye className="w-4 h-4" />
+                  View Profile
+                </Link>
+              </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-6">
