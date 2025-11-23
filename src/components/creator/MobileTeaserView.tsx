@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Eye, Heart, Lock, Play, Sparkles, Package } from 'lucide-react';
 import type { Post, ContentPackage, Creator } from '../../types/database';
+import { getPostsWithWelcome } from './WelcomePosts';
 
 interface MobileTeaserViewProps {
   posts: Post[];
   packages: ContentPackage[];
   creator: Creator;
   isSubscribed: boolean;
+  isOwnProfile?: boolean;
   unlockedPostIds: Set<string>;
   onUnlockPost: (postId: string) => void;
   onViewPackage: (pkg: ContentPackage) => void;
@@ -17,11 +19,13 @@ export function MobileTeaserView({
   packages,
   creator,
   isSubscribed,
+  isOwnProfile = false,
   unlockedPostIds,
   onUnlockPost,
   onViewPackage,
 }: MobileTeaserViewProps) {
-  const [activePost, setActivePost] = useState<Post | null>(posts[0] || null);
+  const displayPosts = isOwnProfile ? getPostsWithWelcome(posts) : posts;
+  const [activePost, setActivePost] = useState<Post | null>(displayPosts[0] || null);
 
   const isPostUnlocked = (post: Post) => {
     return !post.is_locked || isSubscribed || unlockedPostIds.has(post.id);
@@ -36,7 +40,7 @@ export function MobileTeaserView({
   const displayName = (creator as any).display_name || (creator as any).name || 'Creator';
   const avatarUrl = creator.avatar_url;
 
-  const topPosts = [...posts]
+  const topPosts = [...displayPosts]
     .sort((a, b) => b.like_count - a.like_count)
     .slice(0, 6);
 
@@ -134,11 +138,11 @@ export function MobileTeaserView({
       )}
 
       {/* Recent Videos Grid */}
-      {posts.length > 0 && (
+      {displayPosts.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-neutral-900 px-1">Recent videos</h3>
           <div className="grid grid-cols-3 gap-2">
-            {posts.map((post) => {
+            {displayPosts.map((post) => {
               const isUnlocked = isPostUnlocked(post);
               const isActive = activePost?.id === post.id;
 

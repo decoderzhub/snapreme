@@ -346,6 +346,7 @@ export default function CreatorProfile() {
           packages={packages}
           creator={creator}
           isSubscribed={isSubscribed}
+          isOwnProfile={isOwnProfile}
           unlockedPostIds={unlockedPostIds}
           onUnlockPost={handleUnlockPost}
           onViewPackage={handlePurchasePackage}
