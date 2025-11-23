@@ -2,7 +2,7 @@
 
 ## Problem
 
-After completing Stripe Connect onboarding, users were redirected back to Snapreme but saw no confirmation that the connection was successful. The page appeared blank with no feedback.
+After completing Stripe Connect onboarding, users were redirected back to peak.boo but saw no confirmation that the connection was successful. The page appeared blank with no feedback.
 
 ## Root Causes
 
@@ -170,14 +170,14 @@ Now stores complete Stripe Connect account data in the `stripe_connect_accounts`
 ### Before Fix:
 1. User clicks "Connect Stripe"
 2. Completes Stripe onboarding
-3. Redirects back to Snapreme
+3. Redirects back to peak.boo
 4. **Sees blank page** - No feedback
 5. **User confused** - Did it work?
 
 ### After Fix:
 1. User clicks "Connect Stripe"
 2. Completes Stripe onboarding
-3. Redirects back to Snapreme
+3. Redirects back to peak.boo
 4. **Green success banner appears** ✅
 5. **Clear message**: "Stripe Connected Successfully!"
 6. **Next steps shown**: "Set your subscription price below..."

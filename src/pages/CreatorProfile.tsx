@@ -270,7 +270,7 @@ export default function CreatorProfile() {
         <div className="text-center">
           <h2 className="text-xl font-bold mb-2">Profile Setup Incomplete</h2>
           <p className="text-slate-600 mb-4">
-            This creator has not finished setting up their Snapreme profile.
+            This creator has not finished setting up their peak.boo profile.
           </p>
           {isOwnProfile && (
             <Link
@@ -371,7 +371,7 @@ export default function CreatorProfile() {
               <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-3 py-2.5">
                 <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5" />
                 <p className="text-xs text-amber-800">
-                  It looks like you might be mentioning Snapchat directly in your bio. To keep Snapreme as
+                  It looks like you might be mentioning Snapchat directly in your bio. To keep peak.boo as
                   the secure middle layer, please avoid putting your Snapchat username or &quot;add me on SC&quot; here.
                   Fans should only get access via the unlock + QR flow.
                 </p>

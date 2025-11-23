@@ -12,7 +12,7 @@ export default function BrandCta() {
       icon: Sparkles,
       title: 'Premium, curated experience',
       description:
-        'No endless scrolling. Snapreme helps you find creators you actually care about and keeps everything in one clean space.',
+        'No endless scrolling. peak.boo helps you find creators you actually care about and keeps everything in one clean space.',
     },
     {
       icon: ShieldCheck,
@@ -33,7 +33,7 @@ export default function BrandCta() {
               Built for fans who want more than just a follow.
             </h2>
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-6">
-              Social media is loud. Snapreme is quiet, intentional, and premium. Subscribe to the creators
+              Social media is loud. peak.boo is quiet, intentional, and premium. Subscribe to the creators
               you love and get a direct line to their best content — with no noise from the algorithm.
             </p>
             <p className="text-sm text-slate-500">

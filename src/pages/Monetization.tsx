@@ -155,7 +155,7 @@ export default function Monetization() {
             Monetization
           </p>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-1">
-            Get paid for your Snapreme content
+            Get paid for your peak.boo content
           </h1>
           <p className="text-sm text-slate-600">
             Connect Stripe, choose your monthly price, and start earning from fans who unlock your Snapchat QR.
@@ -227,7 +227,7 @@ export default function Monetization() {
             <div className="flex-1">
               <h2 className="text-base font-semibold text-slate-900 mb-1">Stripe payouts</h2>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Stripe handles your payouts, tax forms, and compliance. Snapreme takes a 10% platform fee. You receive 90% of all subscription revenue directly to your bank account.
+                Stripe handles your payouts, tax forms, and compliance. peak.boo takes a 10% platform fee. You receive 90% of all subscription revenue directly to your bank account.
               </p>
             </div>
           </div>

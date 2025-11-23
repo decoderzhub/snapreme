@@ -34,11 +34,11 @@ export default function Login() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-4">
             <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-              Snapreme
+              peak.boo
             </h1>
           </Link>
           <h2 className="text-2xl font-bold text-slate-900">Welcome back</h2>
-          <p className="text-slate-600 mt-2">Sign in to access the Snapreme Network</p>
+          <p className="text-slate-600 mt-2">Sign in to access the peak.boo Network</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-[0_10px_40px_rgba(15,23,42,0.1)] p-8 border border-slate-100">
@@ -109,7 +109,7 @@ export default function Login() {
         </div>
 
         <p className="text-center text-sm text-slate-500 mt-6">
-          By continuing, you agree to Snapreme's Terms of Service and Privacy Policy
+          By continuing, you agree to peak.boo's Terms of Service and Privacy Policy
         </p>
       </div>
     </div>

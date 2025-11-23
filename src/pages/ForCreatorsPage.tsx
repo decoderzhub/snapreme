@@ -13,7 +13,7 @@ export default function ForCreatorsPage() {
           </h1>
 
           <p className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
-            Snapreme is your home for premium, story-style content. Turn your private snaps, behind-the-scenes
+            peak.boo is your home for premium, story-style content. Turn your private snaps, behind-the-scenes
             moments, and close-friends energy into a predictable monthly income from fans who genuinely support you.
           </p>
 
@@ -60,8 +60,8 @@ export default function ForCreatorsPage() {
 
               <ol className="space-y-4 text-sm sm:text-base text-slate-700">
                 <li>
-                  <span className="font-semibold text-slate-900">1. Create your Snapreme account.</span>{' '}
-                  Choose your handle and basic info so we can generate your SnapremeCard.
+                  <span className="font-semibold text-slate-900">1. Create your peak.boo account.</span>{' '}
+                  Choose your handle and basic info so we can generate your peak.booCard.
                 </li>
                 <li>
                   <span className="font-semibold text-slate-900">2. Set up your premium space.</span>{' '}
@@ -69,7 +69,7 @@ export default function ForCreatorsPage() {
                 </li>
                 <li>
                   <span className="font-semibold text-slate-900">3. Invite your fans.</span>{' '}
-                  Share your Snapreme link in your bio, stories, group chats, or community platforms.
+                  Share your peak.boo link in your bio, stories, group chats, or community platforms.
                 </li>
               </ol>
             </div>

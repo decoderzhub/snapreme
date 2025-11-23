@@ -125,7 +125,7 @@ ${
 
 ---
 
-Next Steps: Review this brief, apply to work with creators on Snapreme Network, or contact us for campaign management support.
+Next Steps: Review this brief, apply to work with creators on peak.boo Network, or contact us for campaign management support.
     `.trim();
 
     setGeneratedBrief(brief);

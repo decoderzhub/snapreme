@@ -197,7 +197,7 @@ export default function ApplyCreator() {
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Application Received!</h2>
             <p className="text-lg text-slate-600 mb-6">
               Your creator application has been received. We'll email you at{' '}
-              <span className="font-semibold text-blue-600">{formData.email}</span> when your Snapreme profile
+              <span className="font-semibold text-blue-600">{formData.email}</span> when your peak.boo profile
               is live.
             </p>
             <p className="text-slate-600 mb-8">
@@ -229,7 +229,7 @@ export default function ApplyCreator() {
         <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_20px_60px_rgba(15,23,42,0.12)] p-6 sm:p-8">
           <div className="mb-8 text-center">
             <h1 className="text-3xl sm:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-3">
-              Apply as a Snapreme Creator
+              Apply as a peak.boo Creator
             </h1>
             <p className="text-slate-600 max-w-2xl mx-auto">
               Anyone can apply. We'll use your info to build a professional profile brands can browse.

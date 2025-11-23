@@ -46,7 +46,7 @@ export default function AdminSettings() {
                 </label>
                 <input
                   type="text"
-                  defaultValue="Snapreme"
+                  defaultValue="peak.boo"
                   className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -66,7 +66,7 @@ export default function AdminSettings() {
                 </label>
                 <input
                   type="email"
-                  defaultValue="support@snapreme.com"
+                  defaultValue="support@peak.boo"
                   className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

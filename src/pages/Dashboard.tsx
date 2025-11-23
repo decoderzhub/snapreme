@@ -113,7 +113,7 @@ export default function Dashboard() {
             Welcome{profile?.display_name ? `, ${profile.display_name}` : user?.email ? `, ${user.email}` : ''}.
           </h1>
           <p className="text-slate-600 text-sm sm:text-base">
-            This is your home base for Snapreme. Complete your SnapremeCard, set your price, and start sharing
+            This is your home base for peak.boo. Complete your peak.booCard, set your price, and start sharing
             premium content with your fans.
           </p>
         </header>
@@ -200,7 +200,7 @@ export default function Dashboard() {
                   <Sparkles className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Complete your SnapremeCard</h2>
+                  <h2 className="text-lg font-semibold text-slate-900">Complete your peak.booCard</h2>
                   <p className="text-sm text-slate-600 mt-1">
                     Add a display name, handle, bio, cover image, and your main categories so fans know what to expect.
                   </p>
@@ -212,7 +212,7 @@ export default function Dashboard() {
                 className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors"
               >
                 <Edit3 className="w-4 h-4 mr-2" />
-                Edit SnapremeCard
+                Edit peak.booCard
               </Link>
             </div>
 

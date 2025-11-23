@@ -38,7 +38,7 @@ export default function StatsBar() {
   const statItems = [
     {
       icon: Users,
-      label: 'Creators on Snapreme',
+      label: 'Creators on peak.boo',
       value: `${stats.totalCreators.toLocaleString()}+`,
     },
     {

@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
           currency: 'usd',
           product_data: {
             name: `${pkg.coins} Coins`,
-            description: 'Snapreme coins for messages, tips, and gifts',
+            description: 'peak.boo coins for messages, tips, and gifts',
           },
           unit_amount: pkg.price,
         },

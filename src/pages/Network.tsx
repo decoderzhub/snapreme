@@ -115,7 +115,7 @@ export default function Network() {
                 Explore creators
               </h1>
               <p className="text-sm text-slate-500 mt-1">
-                Discover premium Snapreme creators, trending profiles, and rising talent.
+                Discover premium peak.boo creators, trending profiles, and rising talent.
               </p>
             </div>
           </div>
@@ -198,7 +198,7 @@ export default function Network() {
                 </div>
 
                 <p className="text-xs text-slate-500 mb-4">
-                  Creators highlighted here get extra visibility across Snapreme. Later you can turn this into a paid promotion slot.
+                  Creators highlighted here get extra visibility across peak.boo. Later you can turn this into a paid promotion slot.
                 </p>
 
                 <div className="space-y-3">

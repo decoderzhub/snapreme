@@ -9,7 +9,7 @@ export default function ForBrands() {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6">For Brands</h1>
           <p className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
-            Partner with Snapreme to discover premium Snapchat creators for your campaigns, amplify engagement,
+            Partner with peak.boo to discover premium Snapchat creators for your campaigns, amplify engagement,
             and connect with audiences through authentic, high-converting story content.
           </p>
         </div>
@@ -78,7 +78,7 @@ export default function ForBrands() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Why Choose Snapreme Creators?
+              Why Choose peak.boo Creators?
             </h2>
           </div>
 
@@ -124,7 +124,7 @@ export default function ForBrands() {
             <div>
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-6">Proven Results</h2>
               <p className="text-lg text-slate-600 leading-relaxed mb-8">
-                Snapreme creators drive measurable engagement and brand lift across industries.
+                peak.boo creators drive measurable engagement and brand lift across industries.
               </p>
 
               <div className="space-y-6">

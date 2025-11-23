@@ -46,10 +46,10 @@ export default function Onboarding() {
         <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl shadow-lg p-8 sm:p-10 text-white">
           <div className="flex items-center gap-3 mb-4">
             <Sparkles className="w-8 h-8" />
-            <h1 className="text-3xl font-bold">Welcome to Snapreme!</h1>
+            <h1 className="text-3xl font-bold">Welcome to peak.boo!</h1>
           </div>
           <p className="text-blue-50 text-lg max-w-2xl">
-            Choose how you'd like to use Snapreme. You can always change this later.
+            Choose how you'd like to use peak.boo. You can always change this later.
           </p>
         </div>
 

@@ -1,8 +1,8 @@
 /*
-  # Snapreme Network Database Schema
+  # peak.boo Network Database Schema
 
   ## Overview
-  Creates the complete database schema for the Snapreme creator network platform,
+  Creates the complete database schema for the peak.boo creator network platform,
   including creator profiles, campaigns, collaboration requests, and analytics.
 
   ## New Tables

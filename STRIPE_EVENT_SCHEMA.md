@@ -2,7 +2,7 @@
 
 ## Overview
 
-Snapreme now has a comprehensive Stripe event tracking system that stores all webhook events, payments, subscriptions, payouts, disputes, and Connect account data. This provides full audit trails, idempotent webhook processing, and detailed financial reporting.
+peak.boo now has a comprehensive Stripe event tracking system that stores all webhook events, payments, subscriptions, payouts, disputes, and Connect account data. This provides full audit trails, idempotent webhook processing, and detailed financial reporting.
 
 ---
 
@@ -139,7 +139,7 @@ const renewalDate = data[0]?.current_period_end;
 - `creator_id` - Creator's user ID
 - `amount` - Payment amount in cents
 - `amount_received` - Amount actually received
-- `application_fee_amount` - Platform fee (10% for Snapreme)
+- `application_fee_amount` - Platform fee (10% for peak.boo)
 - `currency` - Payment currency
 - `status` - Payment status (succeeded, failed, etc.)
 - `description` - Payment description
@@ -447,4 +447,4 @@ For issues or questions:
 3. Verify webhook secret is configured
 4. Ensure RLS policies allow access
 
-**The Stripe event schema is production-ready and provides enterprise-level financial tracking for Snapreme.**
+**The Stripe event schema is production-ready and provides enterprise-level financial tracking for peak.boo.**

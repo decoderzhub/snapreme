@@ -83,7 +83,7 @@ export default function CaseStudies() {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6">Case Studies</h1>
           <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto">
-            See how brands and creators partnered on Snapreme to reach millions and drive real results.
+            See how brands and creators partnered on peak.boo to reach millions and drive real results.
           </p>
         </div>
       </section>

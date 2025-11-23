@@ -25,10 +25,10 @@ export default function Footer() {
             <div className="flex items-center gap-2 mb-3">
               <img
                 src="/assets/snapreme_icon.png"
-                alt="Snapreme"
+                alt="peak.boo"
                 className="w-8 h-8 object-contain"
               />
-              <h3 className="text-2xl font-bold text-white">Snapreme</h3>
+              <h3 className="text-2xl font-bold text-white">peak.boo</h3>
             </div>
             <p className="text-slate-400 leading-relaxed">
               Premium Snapchat creator platform.
@@ -52,7 +52,7 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-slate-800 text-center">
           <p className="text-sm text-slate-500">
-            © {currentYear} Snapreme.app – All rights reserved.
+            © {currentYear} peak.boo.app – All rights reserved.
           </p>
         </div>
       </div>

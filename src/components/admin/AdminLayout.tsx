@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
               Admin Dashboard
             </h2>
-            <p className="text-xs text-slate-500 mt-1">Snapreme Platform Control</p>
+            <p className="text-xs text-slate-500 mt-1">peak.boo Platform Control</p>
           </div>
 
           <nav className="flex-1 overflow-y-auto p-4">

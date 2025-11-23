@@ -1,8 +1,8 @@
 /*
-  # Expand Snapreme Schema for Full Platform Features
+  # Expand peak.boo Schema for Full Platform Features
 
   ## Summary
-  This migration expands the Snapreme platform to support shoppable creator profiles,
+  This migration expands the peak.boo platform to support shoppable creator profiles,
   creator applications, brand briefs, and enhanced creator data.
 
   ## New Tables

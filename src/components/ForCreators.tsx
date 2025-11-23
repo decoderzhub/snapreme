@@ -18,7 +18,7 @@ export default function ForCreators() {
               Turn your close friends vibe into a real business.
             </h2>
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-6">
-              Snapreme gives you a clean, simple way to share premium, story-style content with the fans who
+              peak.boo gives you a clean, simple way to share premium, story-style content with the fans who
               actually care — and get paid for it. No chasing brand managers, no complicated contracts.
             </p>
 
@@ -70,7 +70,7 @@ export default function ForCreators() {
                 </div>
 
                 <div className="mt-4 rounded-2xl bg-black/40 border border-white/10 px-4 py-3 text-xs text-slate-200">
-                  "Snapreme makes it easy. I post once, choose who sees it, and know exactly what I'm earning each month."
+                  "peak.boo makes it easy. I post once, choose who sees it, and know exactly what I'm earning each month."
                 </div>
               </div>
             </div>

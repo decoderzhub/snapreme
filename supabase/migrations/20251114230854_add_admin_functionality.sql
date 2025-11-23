@@ -1,9 +1,9 @@
 /*
-  # Add Admin Functionality to Snapreme Platform
+  # Add Admin Functionality to peak.boo Platform
 
   ## Summary
   This migration adds comprehensive admin functionality including role management,
-  verification workflow, and activity tracking for the Snapreme platform.
+  verification workflow, and activity tracking for the peak.boo platform.
 
   ## Changes to Existing Tables
 

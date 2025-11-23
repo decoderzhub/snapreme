@@ -82,11 +82,11 @@ export default function NavBar() {
           <Link to="/" className="flex-shrink-0 flex items-center gap-2">
             <img
               src="/assets/snapreme_icon.png"
-              alt="Snapreme"
+              alt="peak.boo"
               className="w-8 h-8 object-contain"
             />
             <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-              Snapreme
+              peak.boo
             </h1>
           </Link>
 
@@ -239,7 +239,7 @@ export default function NavBar() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-amber-800 font-semibold">
               <Shield className="w-4 h-4" />
-              <span>Complete your setup to activate your Snapreme profile.</span>
+              <span>Complete your setup to activate your peak.boo profile.</span>
             </div>
             <Link
               to="/onboarding"

@@ -1,5 +1,5 @@
 /*
-  # Add Stripe Connect Monetization to Snapreme
+  # Add Stripe Connect Monetization to peak.boo
 
   1. Schema Changes
     - Add Stripe Connect fields to `creators` table

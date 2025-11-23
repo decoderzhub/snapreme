@@ -207,7 +207,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_created
   ON public.stripe_payments(created_at DESC);
 
 COMMENT ON TABLE public.stripe_payments IS 'All payment intents and charges for audit trail';
-COMMENT ON COLUMN public.stripe_payments.application_fee_amount IS 'Platform fee taken (10% for Snapreme)';
+COMMENT ON COLUMN public.stripe_payments.application_fee_amount IS 'Platform fee taken (10% for peak.boo)';
 COMMENT ON COLUMN public.stripe_payments.data IS 'Full Stripe PaymentIntent object';
 
 ALTER TABLE public.stripe_payments ENABLE ROW LEVEL SECURITY;

@@ -1,8 +1,8 @@
-# Snapreme Creator Guide
+# peak.boo Creator Guide
 
 ## Overview
 
-This guide explains how creators can manage their content and monetization on Snapreme.
+This guide explains how creators can manage their content and monetization on peak.boo.
 
 ---
 
@@ -171,7 +171,7 @@ Create bundles of multiple posts at discounted prices:
 - Upload your Snapchat QR code in Account Settings
 - Only paying subscribers can view it
 - Never share your Snapchat username publicly
-- Snapreme acts as a secure gateway
+- peak.boo acts as a secure gateway
 
 ### Content Protection
 
@@ -191,7 +191,7 @@ A: Content upload feature is in development. ETA: Q1 2025
 A: PPM response interface is coming to the creator dashboard soon
 
 **Q: What's the platform fee?**
-A: Snapreme takes 10% of all transactions (subscriptions, unlocks, PPM)
+A: peak.boo takes 10% of all transactions (subscriptions, unlocks, PPM)
 
 **Q: Can I change my subscription price?**
 A: Yes, in Monetization Settings. Changes apply to new subscribers only.
@@ -204,10 +204,10 @@ A: Earnings are automatically transferred to your Stripe account weekly
 ## 🆘 Support
 
 **Need Help?**
-- Email: support@snapreme.com
+- Email: support@peak.boo
 - Dashboard → Help Center
 - Community Discord (link in dashboard)
 
 **Report Issues:**
-- Bug reports: github.com/snapreme/issues
-- Security concerns: security@snapreme.com
+- Bug reports: github.com/peakboo/issues
+- Security concerns: security@peak.boo
