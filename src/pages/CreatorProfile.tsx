@@ -35,18 +35,20 @@ export default function CreatorProfile() {
   useEffect(() => {
     async function loadCreator() {
       setLoading(true);
-      const cleanHandle = handle?.replace('@', '');
 
-      if (!cleanHandle) {
+      if (!handle) {
         setCreator(null);
         setLoading(false);
         return;
       }
 
+      // Try to match with @ prefix first, then without
+      const handleWithAt = handle.startsWith('@') ? handle : `@${handle}`;
+
       const { data, error } = await supabase
         .from('creators')
         .select('*')
-        .eq('handle', cleanHandle)
+        .eq('handle', handleWithAt)
         .maybeSingle();
 
       if (!error && data) {
