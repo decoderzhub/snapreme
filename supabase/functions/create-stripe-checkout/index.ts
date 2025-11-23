@@ -111,55 +111,54 @@ Deno.serve(async (req: Request) => {
     }
 
     // ============================================
-    // STEP 5: Get or create Stripe Customer
+    // STEP 5: Get or create Stripe Customer on CONNECTED ACCOUNT
     // ============================================
     /**
-     * Stripe Customers represent your users in Stripe.
-     * We store the customer ID to reuse for future purchases.
+     * CRITICAL: The customer must exist on the CONNECTED ACCOUNT, not the platform.
+     * When using direct charges with Stripe Connect, the customer object must
+     * exist on the same account as the price/product.
+     *
+     * We'll check if a customer exists on the connected account and create one if not.
      */
     let customerId: string | null = null;
 
-    // Check if we already have a Stripe customer ID for this fan
-    const { data: fanProfile } = await supabase
-      .from('fan_profiles')
-      .select('stripe_customer_id')
-      .eq('id', user.id)
-      .maybeSingle();
+    // Try to find existing customer on the connected account by email
+    const existingCustomers = await stripe.customers.list({
+      email: user.email!,
+      limit: 1
+    }, {
+      stripeAccount: creator.stripe_connect_id,
+    });
 
-    if (fanProfile?.stripe_customer_id) {
-      try {
-        await stripe.customers.retrieve(fanProfile.stripe_customer_id);
-        customerId = fanProfile.stripe_customer_id;
-      } catch (err) {
-        console.log('Stored customer ID not found in Stripe, creating new customer');
-        customerId = null;
-      }
-    }
-
-    if (!customerId) {
+    if (existingCustomers.data.length > 0) {
+      customerId = existingCustomers.data[0].id;
+      console.log('Found existing customer on connected account:', customerId);
+    } else {
+      // Create new customer on the CONNECTED ACCOUNT
       const customer = await stripe.customers.create({
         email: user.email!,
         metadata: {
           fanId: user.id,
-          platform: 'snapreme'
+          platform: 'snapreme',
+          creatorId: creator.id
         },
+      }, {
+        stripeAccount: creator.stripe_connect_id,
       });
       customerId = customer.id;
+      console.log('Created new customer on connected account:', customerId);
 
-      await supabase
-        .from('fan_profiles')
-        .upsert({
-          id: user.id,
-          email: user.email!,
-          stripe_customer_id: customerId,
-        });
-
+      // Store the customer ID for this specific creator (many-to-many relationship)
       await supabase
         .from('stripe_customers')
         .upsert({
           user_id: user.id,
           stripe_customer_id: customerId,
           email: user.email!,
+          metadata: {
+            connected_account_id: creator.stripe_connect_id,
+            creator_id: creator.id
+          },
           updated_at: new Date().toISOString(),
         }, {
           onConflict: 'stripe_customer_id',
