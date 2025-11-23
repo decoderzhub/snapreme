@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { Creator } from '../types/database';
 import { useFavorites } from '../contexts/FavoritesContext';
 import { useAuth } from '../contexts/AuthContext';
+import TipModal from '../components/TipModal';
 
 export default function Network() {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ export default function Network() {
   const [activeCreatorIndex, setActiveCreatorIndex] = useState(0);
   const [mobileView, setMobileView] = useState<'uploaded' | 'center' | 'featured'>('center');
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const [tipModalCreator, setTipModalCreator] = useState<Creator | null>(null);
 
   useEffect(() => {
     async function fetchCreators() {
@@ -345,7 +347,7 @@ export default function Network() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            console.log('Tip creator');
+                            setTipModalCreator(activeCreator);
                           }}
                           className="flex flex-col items-center gap-1"
                         >
@@ -654,7 +656,7 @@ export default function Network() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            console.log('Tip creator');
+                            setTipModalCreator(activeCreator);
                           }}
                           className="flex flex-col items-center gap-1"
                         >
@@ -931,6 +933,13 @@ export default function Network() {
             </div>
           </div>
         </>
+      )}
+
+      {tipModalCreator && (
+        <TipModal
+          creator={tipModalCreator}
+          onClose={() => setTipModalCreator(null)}
+        />
       )}
     </div>
   );
