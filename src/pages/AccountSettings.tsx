@@ -739,21 +739,35 @@ export default function AccountSettings() {
   const completeness = calculateCompleteness();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/60 to-transparent py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">Account Settings</h1>
-            <p className="text-slate-600">Manage your creator profile and account preferences</p>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50/60 to-transparent">
+      <div className="relative h-48 w-full overflow-hidden">
+        <img
+          src={formData.card_image_url || '/assets/snapreme-default-banner.svg'}
+          alt="Profile Banner"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/60" />
+        <div className="absolute bottom-6 left-0 right-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between">
+              <div>
+                <h1 className="text-4xl font-bold text-white mb-2">Account Settings</h1>
+                <p className="text-white/90">Manage your creator profile and account preferences</p>
+              </div>
+              <button
+                onClick={() => setShowPreviewModal(true)}
+                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors"
+              >
+                <Eye className="w-4 h-4" />
+                Preview Card
+              </button>
+            </div>
           </div>
-          <button
-            onClick={() => setShowPreviewModal(true)}
-            className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors"
-          >
-            <Eye className="w-4 h-4" />
-            Preview Card
-          </button>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="mb-8" />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
