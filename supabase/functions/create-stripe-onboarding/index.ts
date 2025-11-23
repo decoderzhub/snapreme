@@ -153,7 +153,52 @@ Deno.serve(async (req: Request) => {
     }
 
     // ============================================
-    // STEP 6: Create Account Link for Onboarding
+    // STEP 6: Check current account status before creating link
+    // ============================================
+    const account = await stripe.accounts.retrieve(accountId);
+
+    // If account is already fully onboarded, update database and return success
+    if (account.details_submitted && !creator.is_stripe_connected) {
+      await supabase
+        .from('creators')
+        .update({ is_stripe_connected: true })
+        .eq('id', creator.id);
+
+      // Also create entry in stripe_connect_accounts table
+      await supabase
+        .from('stripe_connect_accounts')
+        .upsert({
+          user_id: user.id,
+          stripe_account_id: accountId,
+          details_submitted: account.details_submitted,
+          payouts_enabled: account.payouts_enabled || false,
+          charges_enabled: account.charges_enabled || false,
+          requirements: account.requirements as any,
+          capabilities: account.capabilities as any,
+          country: account.country || null,
+          default_currency: account.default_currency || 'usd',
+          metadata: account.metadata as any,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'stripe_account_id',
+        });
+
+      return new Response(
+        JSON.stringify({
+          alreadyConnected: true,
+          accountId: accountId,
+        }),
+        {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    // ============================================
+    // STEP 7: Create Account Link for Onboarding
     // ============================================
     /**
      * Account Links are temporary URLs (expires in ~5 minutes) that
@@ -170,24 +215,28 @@ Deno.serve(async (req: Request) => {
     });
 
     // ============================================
-    // STEP 7: Check if onboarding is complete (optional)
+    // STEP 8: Store/update account details in new table
     // ============================================
-    // If the URL has connected=true, verify the account is fully onboarded
-    if (req.url.includes('connected=true') && !creator.is_stripe_connected) {
-      // Retrieve the full account details to check onboarding status
-      const account = await stripe.accounts.retrieve(accountId);
-
-      // details_submitted means they completed onboarding
-      if (account.details_submitted) {
-        await supabase
-          .from('creators')
-          .update({ is_stripe_connected: true })
-          .eq('id', creator.id);
-      }
-    }
+    await supabase
+      .from('stripe_connect_accounts')
+      .upsert({
+        user_id: user.id,
+        stripe_account_id: accountId,
+        details_submitted: account.details_submitted,
+        payouts_enabled: account.payouts_enabled || false,
+        charges_enabled: account.charges_enabled || false,
+        requirements: account.requirements as any,
+        capabilities: account.capabilities as any,
+        country: account.country || null,
+        default_currency: account.default_currency || 'usd',
+        metadata: account.metadata as any,
+        updated_at: new Date().toISOString(),
+      }, {
+        onConflict: 'stripe_account_id',
+      });
 
     // ============================================
-    // STEP 8: Return the onboarding URL
+    // STEP 9: Return the onboarding URL
     // ============================================
     return new Response(
       JSON.stringify({

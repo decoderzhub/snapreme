@@ -16,6 +16,7 @@ export default function Monetization() {
   const [savingPrice, setSavingPrice] = useState(false);
   const [subscribers, setSubscribers] = useState(0);
   const [creatorId, setCreatorId] = useState<string | null>(null);
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -41,13 +42,26 @@ export default function Monetization() {
   }, [user]);
 
   useEffect(() => {
-    if (searchParams.get('connected') === 'true' && creatorId && !isConnected) {
+    const connected = searchParams.get('connected') === 'true';
+
+    if (connected && creatorId && !isConnected) {
       supabase
         .from('creators')
         .update({ is_stripe_connected: true })
         .eq('id', creatorId)
-        .then(() => {
-          setIsConnected(true);
+        .then(({ error }) => {
+          if (!error) {
+            setIsConnected(true);
+            setShowSuccessBanner(true);
+
+            setTimeout(() => {
+              setShowSuccessBanner(false);
+            }, 8000);
+
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.delete('connected');
+            window.history.replaceState({}, '', newUrl.pathname);
+          }
         });
     }
   }, [searchParams, creatorId, isConnected]);
@@ -72,7 +86,11 @@ export default function Monetization() {
       });
 
       const json = await res.json();
-      if (json.url) {
+      if (json.alreadyConnected) {
+        setIsConnected(true);
+        setShowSuccessBanner(true);
+        setTimeout(() => setShowSuccessBanner(false), 8000);
+      } else if (json.url) {
         window.location.href = json.url;
       } else {
         throw new Error(json.error || 'Failed to create onboarding link');
@@ -143,6 +161,33 @@ export default function Monetization() {
             Connect Stripe, choose your monthly price, and start earning from fans who unlock your Snapchat QR.
           </p>
         </header>
+
+        {showSuccessBanner && (
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-5 animate-in slide-in-from-top-4 duration-300">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="w-5 h-5 text-green-700" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-green-900 mb-1">
+                  Stripe Connected Successfully!
+                </h3>
+                <p className="text-sm text-green-800 leading-relaxed">
+                  Your account is now ready to receive payments. Set your subscription price below and fans can start unlocking your exclusive content.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowSuccessBanner(false)}
+                className="text-green-600 hover:text-green-700 transition-colors"
+              >
+                <span className="sr-only">Dismiss</span>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
 
         {isConnected && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
