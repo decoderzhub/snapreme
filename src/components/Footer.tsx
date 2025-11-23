@@ -10,8 +10,7 @@ export default function Footer() {
 
   const links = [
     { label: 'About', id: 'about' },
-    { label: 'Influencers', id: 'influencers' },
-    { label: 'For Brands', id: 'for-brands' },
+    { label: 'Creators', id: 'influencers' },
     { label: 'For Creators', id: 'for-creators' },
     { label: 'Privacy', href: '#' },
     { label: 'Terms', href: '#' },
@@ -31,7 +30,7 @@ export default function Footer() {
               <h3 className="text-2xl font-bold text-white">peak.boo</h3>
             </div>
             <p className="text-slate-400 leading-relaxed">
-              Premium Snapchat creator platform.
+              Premium creator monetization platform.
             </p>
           </div>
 
@@ -52,7 +51,7 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-slate-800 text-center">
           <p className="text-sm text-slate-500">
-            © {currentYear} peak.boo.app – All rights reserved.
+            © {currentYear} peak.boo – All rights reserved.
           </p>
         </div>
       </div>

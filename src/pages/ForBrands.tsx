@@ -9,8 +9,8 @@ export default function ForBrands() {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6">For Brands</h1>
           <p className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto">
-            Partner with peak.boo to discover premium Snapchat creators for your campaigns, amplify engagement,
-            and connect with audiences through authentic, high-converting story content.
+            Partner with peak.boo to discover premium creators for your campaigns, amplify engagement,
+            and connect with audiences through authentic, high-converting content.
           </p>
         </div>
       </section>
@@ -31,7 +31,7 @@ export default function ForBrands() {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-3">Creator Campaign Management</h3>
               <p className="text-slate-600 leading-relaxed">
-                Full-service management of Snapchat story promotions, takeovers, and UGC content creation.
+                Full-service management of creator story promotions, takeovers, and UGC content creation.
               </p>
             </div>
 
@@ -175,7 +175,7 @@ export default function ForBrands() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">Ready to elevate your brand campaigns?</h2>
           <p className="text-lg text-blue-100 mb-8">
-            Let's craft high-converting Snapchat collaborations together.
+            Let's craft high-converting creator collaborations together.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
