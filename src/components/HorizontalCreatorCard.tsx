@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, MoreVertical, CheckCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MoreVertical, CheckCircle, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useFavorites } from '../contexts/FavoritesContext';
 import type { Creator } from '../types/database';
 
 interface HorizontalCreatorCardProps {
@@ -12,6 +13,7 @@ interface HorizontalCreatorCardProps {
 
 export function HorizontalCreatorCard({ creators, title, showPromoTag, description }: HorizontalCreatorCardProps) {
   const navigate = useNavigate();
+  const { toggleFavorite, isFavorite } = useFavorites();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -118,52 +120,72 @@ export function HorizontalCreatorCard({ creators, title, showPromoTag, descripti
               key={creator.id}
               className="flex-shrink-0 w-[85%] snap-center"
             >
-              <button
-                onClick={() => cleanHandle && navigate(`/creator/${cleanHandle}`)}
-                className="relative w-full h-36 rounded-2xl overflow-hidden group"
-              >
-                <img
-                  src={coverImage}
-                  alt={creator.display_name || creator.name}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+              <div className="relative w-full h-36 rounded-2xl overflow-hidden group">
+                <button
+                  onClick={() => cleanHandle && navigate(`/creator/${cleanHandle}`)}
+                  className="w-full h-full"
+                >
+                  <img
+                    src={coverImage}
+                    alt={creator.display_name || creator.name}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                <button className="absolute top-3 right-3 w-6 h-6 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/60 transition-colors">
-                  <MoreVertical className="w-3.5 h-3.5 text-white" />
+                  {isFree && (
+                    <div className="absolute top-3 left-3 px-2 py-0.5 bg-emerald-500 rounded text-white text-[10px] font-bold">
+                      Free
+                    </div>
+                  )}
+
+                  <div className="absolute bottom-3 left-3 flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-full ring-3 ring-white/80 overflow-hidden flex-shrink-0">
+                      <img
+                        src={creator.avatar_url || '/assets/snapreme_icon.png'}
+                        alt={creator.display_name || creator.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    <div className="flex-1 min-w-0 text-left">
+                      <div className="flex items-center gap-1">
+                        <h3 className="text-white font-semibold text-sm truncate">
+                          {creator.display_name || creator.name}
+                        </h3>
+                        {creator.is_verified && (
+                          <CheckCircle className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-white/80 text-xs truncate">
+                        {creator.handle}
+                      </p>
+                    </div>
+                  </div>
                 </button>
 
-                {isFree && (
-                  <div className="absolute top-3 left-3 px-2 py-0.5 bg-emerald-500 rounded text-white text-[10px] font-bold">
-                    Free
-                  </div>
-                )}
-
-                <div className="absolute bottom-3 left-3 flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-full ring-3 ring-white/80 overflow-hidden flex-shrink-0">
-                    <img
-                      src={creator.avatar_url || '/assets/snapreme_icon.png'}
-                      alt={creator.display_name || creator.name}
-                      className="w-full h-full object-cover"
+                <div className="absolute top-3 right-3 flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(creator.id);
+                    }}
+                    className="w-7 h-7 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/60 transition-colors z-10"
+                    aria-label={isFavorite(creator.id) ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    <Heart
+                      className={`w-4 h-4 transition-all ${
+                        isFavorite(creator.id)
+                          ? 'fill-red-500 text-red-500'
+                          : 'text-white'
+                      }`}
                     />
-                  </div>
-
-                  <div className="flex-1 min-w-0 text-left">
-                    <div className="flex items-center gap-1">
-                      <h3 className="text-white font-semibold text-sm truncate">
-                        {creator.display_name || creator.name}
-                      </h3>
-                      {creator.is_verified && (
-                        <CheckCircle className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                      )}
-                    </div>
-                    <p className="text-white/80 text-xs truncate">
-                      {creator.handle}
-                    </p>
-                  </div>
+                  </button>
+                  <button className="w-6 h-6 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/60 transition-colors">
+                    <MoreVertical className="w-3.5 h-3.5 text-white" />
+                  </button>
                 </div>
-              </button>
+              </div>
             </div>
           );
         })}
