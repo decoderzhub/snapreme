@@ -7,7 +7,7 @@
  *
  * Flow:
  * 1. Authenticate the fan (customer)
- * 2. Get or create their Stripe customer ID
+ * 2. Get or create their Stripe customer ID on the connected account
  * 3. Retrieve the creator and their Stripe Connect account ID
  * 4. Create a checkout session for subscription
  * 5. Platform takes 10% application fee, rest goes to creator
@@ -204,24 +204,16 @@ Deno.serve(async (req: Request) => {
       cancel_url: `${appUrl}/creator/${creator.handle}`,
 
       /**
-       * Payment Intent Data for Direct Charges
-       *
-       * Platform takes a fixed application fee on each charge
-       * Calculate 10% fee based on the subscription price
-       */
-      payment_intent_data: {
-        // Application fee in cents (10% of subscription price)
-        application_fee_amount: Math.round((creator.subscription_price || 5) * 100 * 0.10),
-      },
-
-      /**
        * Subscription Data - configures how the subscription works
        *
-       * For recurring subscriptions with application fees, we need:
-       * - application_fee_percent OR fixed fees in payment_intent_data
+       * For recurring subscriptions with application fees:
+       * - Use application_fee_percent (NOT payment_intent_data)
        * - Metadata for tracking
        */
       subscription_data: {
+        // Platform fee: 10% of each subscription payment
+        application_fee_percent: 10,
+
         // Store metadata for tracking
         metadata: {
           creatorId: creator.id,
