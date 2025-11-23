@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -25,9 +25,12 @@ import AdminSettings from './pages/admin/AdminSettings';
 import CreatorProfile from './pages/CreatorProfile';
 
 function App() {
+  const location = useLocation();
+  const isCreatorProfilePage = location.pathname.startsWith('/creator/');
+
   return (
     <div className="min-h-screen bg-white">
-      <NavBar />
+      {!isCreatorProfilePage && <NavBar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -130,7 +133,7 @@ function App() {
         />
       </Routes>
 
-      <Footer />
+      {!isCreatorProfilePage && <Footer />}
     </div>
   );
 }

@@ -318,7 +318,7 @@ export default function CreatorProfile() {
         viewsCount={viewsCount}
         postsCount={postsCount}
         priceDollars={priceDollars}
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/network')}
         onCopyLink={handleCopyLink}
         copiedLink={copiedLink}
         onSubscribe={handleUnlock}
