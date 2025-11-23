@@ -235,7 +235,7 @@ export default function Network() {
           {/* Desktop: 3-Column Layout */}
           <div className="hidden lg:grid lg:grid-cols-[1.2fr_2fr_1.2fr] gap-6 max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-[85vh]">
             {/* Left Column: Uploaded Content */}
-            <div className="space-y-3 overflow-y-auto max-h-[85vh] scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700">
+            <div className="space-y-3 overflow-y-auto max-h-[85vh]">
               <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
                 Recently Uploaded
               </h2>
@@ -396,7 +396,7 @@ export default function Network() {
             </div>
 
             {/* Right Column: Featured & Trending */}
-            <div className="space-y-6 overflow-y-auto max-h-[85vh] scrollbar-thin scrollbar-track-slate-900 scrollbar-thumb-slate-700">
+            <div className="space-y-6 overflow-y-auto max-h-[85vh]">
               {/* Featured */}
               <div>
                 <div className="flex items-center gap-2 mb-3">
