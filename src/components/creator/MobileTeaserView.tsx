@@ -41,7 +41,7 @@ export function MobileTeaserView({
     .slice(0, 6);
 
   return (
-    <div className="xl:hidden space-y-6">
+    <div className="lg:hidden space-y-6">
       {/* Main Player First */}
       {activePost ? (
         <div className="relative rounded-2xl bg-black overflow-hidden h-[70vh] shadow-2xl">

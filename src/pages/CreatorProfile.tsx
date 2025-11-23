@@ -351,7 +351,7 @@ export default function CreatorProfile() {
         />
 
         {/* About + QR Section - Mobile Only */}
-        <section className="xl:hidden mt-8 space-y-6">
+        <section className="lg:hidden mt-8 space-y-6">
           {/* About section */}
           <div className="bg-white rounded-3xl shadow-sm border border-neutral-100 p-5 space-y-4">
             <h2 className="text-lg font-semibold text-neutral-900">About</h2>
@@ -430,7 +430,7 @@ export default function CreatorProfile() {
 
         {/* Monetization Cards - Mobile Only */}
         {!isOwnProfile && (
-          <section className="xl:hidden mt-8 space-y-6">
+          <section className="lg:hidden mt-8 space-y-6">
             <PpmChatCard
               threadId={thread?.id || null}
               messages={messages}

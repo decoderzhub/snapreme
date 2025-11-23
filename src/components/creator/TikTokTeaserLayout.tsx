@@ -43,7 +43,7 @@ export function TikTokTeaserLayout({
   };
 
   return (
-    <div className="hidden xl:grid grid-cols-[1.2fr_2fr_1.2fr] gap-6 min-h-[85vh] mt-6">
+    <div className="hidden lg:grid lg:grid-cols-[1.2fr_2fr_1.2fr] gap-6 min-h-[85vh] mt-6">
       <RecentVideosSidebar
         posts={posts}
         activePost={activePost}
