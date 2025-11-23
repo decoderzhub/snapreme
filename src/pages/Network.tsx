@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Flame, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Flame, Star, ChevronLeft, ChevronRight, Heart, TrendingUp, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Creator } from '../types/database';
@@ -15,7 +15,7 @@ export default function Network() {
   const [loading, setLoading] = useState(true);
   const [activeCreatorIndex, setActiveCreatorIndex] = useState(0);
   const [mobileView, setMobileView] = useState<'uploaded' | 'center' | 'featured'>('center');
-  const { favorites } = useFavorites();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   useEffect(() => {
     async function fetchCreators() {
@@ -133,6 +133,41 @@ export default function Network() {
     navigate(`/creator/${creator.handle.replace(/^@/, '')}`);
   };
 
+  const handleFavoriteClick = (e: React.MouseEvent, creatorId: string) => {
+    e.stopPropagation();
+    if (user) {
+      toggleFavorite(creatorId);
+    }
+  };
+
+  const getBadge = (creator: Creator, type: 'featured' | 'trending' | 'new' | null) => {
+    if (type === 'featured') {
+      return (
+        <div className="px-2 py-1 bg-amber-400 text-black text-xs font-bold rounded-full flex items-center gap-1">
+          <Star className="w-3 h-3" />
+          Featured
+        </div>
+      );
+    }
+    if (type === 'trending') {
+      return (
+        <div className="px-2 py-1 bg-orange-400 text-black text-xs font-bold rounded-full flex items-center gap-1">
+          <Flame className="w-3 h-3" />
+          Hot
+        </div>
+      );
+    }
+    if (type === 'new') {
+      return (
+        <div className="px-2 py-1 bg-blue-400 text-black text-xs font-bold rounded-full flex items-center gap-1">
+          <Sparkles className="w-3 h-3" />
+          New
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-black">
       {/* Header with Search */}
@@ -216,6 +251,28 @@ export default function Network() {
                     className="w-full h-full object-cover transition-transform group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                  {/* Badges */}
+                  <div className="absolute top-3 right-3 flex flex-col gap-2">
+                    {getBadge(creator, 'new')}
+                  </div>
+
+                  {/* Favorite Button */}
+                  {user && (
+                    <button
+                      onClick={(e) => handleFavoriteClick(e, creator.id)}
+                      className="absolute top-3 left-3 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors"
+                    >
+                      <Heart
+                        className={`w-4 h-4 ${
+                          isFavorite(creator.id)
+                            ? 'fill-red-500 text-red-500'
+                            : 'text-white'
+                        }`}
+                      />
+                    </button>
+                  )}
+
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <img
@@ -246,6 +303,22 @@ export default function Network() {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+
+                    {/* Favorite Button */}
+                    {user && (
+                      <button
+                        onClick={(e) => handleFavoriteClick(e, activeCreator.id)}
+                        className="absolute top-6 right-6 p-3 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors z-10"
+                      >
+                        <Heart
+                          className={`w-5 h-5 ${
+                            isFavorite(activeCreator.id)
+                              ? 'fill-red-500 text-red-500'
+                              : 'text-white'
+                          }`}
+                        />
+                      </button>
+                    )}
 
                     {/* Creator Info Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -345,11 +418,28 @@ export default function Network() {
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                      {/* Badge */}
                       <div className="absolute top-3 right-3">
-                        <div className="px-2 py-1 bg-amber-400 text-black text-xs font-bold rounded-full">
-                          Featured
-                        </div>
+                        {getBadge(creator, 'featured')}
                       </div>
+
+                      {/* Favorite Button */}
+                      {user && (
+                        <button
+                          onClick={(e) => handleFavoriteClick(e, creator.id)}
+                          className="absolute top-3 left-3 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors"
+                        >
+                          <Heart
+                            className={`w-4 h-4 ${
+                              isFavorite(creator.id)
+                                ? 'fill-red-500 text-red-500'
+                                : 'text-white'
+                            }`}
+                          />
+                        </button>
+                      )}
+
                       <div className="absolute bottom-0 left-0 right-0 p-4">
                         <div className="flex items-center gap-2">
                           <img
@@ -393,12 +483,28 @@ export default function Network() {
                         className="w-full h-full object-cover transition-transform group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                      {/* Badge */}
                       <div className="absolute top-3 right-3">
-                        <div className="px-2 py-1 bg-orange-400 text-black text-xs font-bold rounded-full flex items-center gap-1">
-                          <Flame className="w-3 h-3" />
-                          Hot
-                        </div>
+                        {getBadge(creator, 'trending')}
                       </div>
+
+                      {/* Favorite Button */}
+                      {user && (
+                        <button
+                          onClick={(e) => handleFavoriteClick(e, creator.id)}
+                          className="absolute top-3 left-3 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors"
+                        >
+                          <Heart
+                            className={`w-4 h-4 ${
+                              isFavorite(creator.id)
+                                ? 'fill-red-500 text-red-500'
+                                : 'text-white'
+                            }`}
+                          />
+                        </button>
+                      )}
+
                       <div className="absolute bottom-0 left-0 right-0 p-4">
                         <div className="flex items-center gap-2">
                           <img
@@ -469,6 +575,22 @@ export default function Network() {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+
+                    {/* Favorite Button */}
+                    {user && (
+                      <button
+                        onClick={(e) => handleFavoriteClick(e, activeCreator.id)}
+                        className="absolute top-6 right-6 p-3 rounded-full bg-black/50 backdrop-blur-sm z-10"
+                      >
+                        <Heart
+                          className={`w-5 h-5 ${
+                            isFavorite(activeCreator.id)
+                              ? 'fill-red-500 text-red-500'
+                              : 'text-white'
+                          }`}
+                        />
+                      </button>
+                    )}
 
                     <div className="absolute bottom-0 left-0 right-0 p-6">
                       <div className="flex items-start gap-3 mb-4">
@@ -559,6 +681,28 @@ export default function Network() {
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                      {/* Badge */}
+                      <div className="absolute top-3 right-3">
+                        {getBadge(creator, 'new')}
+                      </div>
+
+                      {/* Favorite Button */}
+                      {user && (
+                        <button
+                          onClick={(e) => handleFavoriteClick(e, creator.id)}
+                          className="absolute top-3 left-3 p-2 rounded-full bg-black/50 backdrop-blur-sm"
+                        >
+                          <Heart
+                            className={`w-4 h-4 ${
+                              isFavorite(creator.id)
+                                ? 'fill-red-500 text-red-500'
+                                : 'text-white'
+                            }`}
+                          />
+                        </button>
+                      )}
+
                       <div className="absolute bottom-0 left-0 right-0 p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <img
@@ -601,11 +745,28 @@ export default function Network() {
                             className="w-full h-full object-cover"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                          {/* Badge */}
                           <div className="absolute top-3 right-3">
-                            <div className="px-2 py-1 bg-amber-400 text-black text-xs font-bold rounded-full">
-                              Featured
-                            </div>
+                            {getBadge(creator, 'featured')}
                           </div>
+
+                          {/* Favorite Button */}
+                          {user && (
+                            <button
+                              onClick={(e) => handleFavoriteClick(e, creator.id)}
+                              className="absolute top-3 left-3 p-2 rounded-full bg-black/50 backdrop-blur-sm"
+                            >
+                              <Heart
+                                className={`w-4 h-4 ${
+                                  isFavorite(creator.id)
+                                    ? 'fill-red-500 text-red-500'
+                                    : 'text-white'
+                                }`}
+                              />
+                            </button>
+                          )}
+
                           <div className="absolute bottom-0 left-0 right-0 p-4">
                             <div className="flex items-center gap-2">
                               <img
@@ -648,12 +809,28 @@ export default function Network() {
                             className="w-full h-full object-cover"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                          {/* Badge */}
                           <div className="absolute top-3 right-3">
-                            <div className="px-2 py-1 bg-orange-400 text-black text-xs font-bold rounded-full flex items-center gap-1">
-                              <Flame className="w-3 h-3" />
-                              Hot
-                            </div>
+                            {getBadge(creator, 'trending')}
                           </div>
+
+                          {/* Favorite Button */}
+                          {user && (
+                            <button
+                              onClick={(e) => handleFavoriteClick(e, creator.id)}
+                              className="absolute top-3 left-3 p-2 rounded-full bg-black/50 backdrop-blur-sm"
+                            >
+                              <Heart
+                                className={`w-4 h-4 ${
+                                  isFavorite(creator.id)
+                                    ? 'fill-red-500 text-red-500'
+                                    : 'text-white'
+                                }`}
+                              />
+                            </button>
+                          )}
+
                           <div className="absolute bottom-0 left-0 right-0 p-4">
                             <div className="flex items-center gap-2">
                               <img

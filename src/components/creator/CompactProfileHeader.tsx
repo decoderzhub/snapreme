@@ -1,4 +1,4 @@
-import { ArrowLeft, Users, Eye, FileText, Edit, Copy, CheckCircle, Lock } from 'lucide-react';
+import { ArrowLeft, Users, Eye, FileText, Edit, Copy, CheckCircle, Lock, Upload } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Creator } from '../../types/database';
 
@@ -109,6 +109,28 @@ export function CompactProfileHeader({
                 <CheckCircle className="w-4 h-4 text-emerald-400" />
                 <span className="text-sm font-semibold text-emerald-300">Subscribed</span>
               </div>
+            )}
+
+            {isOwnProfile && (
+              <button
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*,video/*';
+                  input.multiple = true;
+                  input.onchange = (e) => {
+                    const files = (e.target as HTMLInputElement).files;
+                    if (files && files.length > 0) {
+                      console.log('Files selected:', Array.from(files).map(f => f.name));
+                    }
+                  };
+                  input.click();
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold transition-all shadow-lg text-sm"
+              >
+                <Upload className="w-4 h-4" />
+                <span className="hidden sm:inline">Upload</span>
+              </button>
             )}
 
             {isOwnProfile && (

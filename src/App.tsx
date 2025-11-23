@@ -27,6 +27,7 @@ import CreatorProfile from './pages/CreatorProfile';
 function App() {
   const location = useLocation();
   const isCreatorProfilePage = location.pathname.startsWith('/creator/');
+  const isNetworkPage = location.pathname === '/network';
 
   return (
     <div className="min-h-screen bg-white">
@@ -133,7 +134,11 @@ function App() {
         />
       </Routes>
 
-      {!isCreatorProfilePage && <Footer />}
+      {!isCreatorProfilePage && (
+        <div className={isNetworkPage ? 'hidden lg:block' : ''}>
+          <Footer />
+        </div>
+      )}
     </div>
   );
 }
