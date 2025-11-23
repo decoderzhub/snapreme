@@ -127,10 +127,16 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (fanProfile?.stripe_customer_id) {
-      // Reuse existing customer
-      customerId = fanProfile.stripe_customer_id;
-    } else {
-      // Create a new Stripe customer
+      try {
+        await stripe.customers.retrieve(fanProfile.stripe_customer_id);
+        customerId = fanProfile.stripe_customer_id;
+      } catch (err) {
+        console.log('Stored customer ID not found in Stripe, creating new customer');
+        customerId = null;
+      }
+    }
+
+    if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email!,
         metadata: {
@@ -140,13 +146,23 @@ Deno.serve(async (req: Request) => {
       });
       customerId = customer.id;
 
-      // Save the customer ID for future use
       await supabase
         .from('fan_profiles')
         .upsert({
           id: user.id,
           email: user.email!,
           stripe_customer_id: customerId,
+        });
+
+      await supabase
+        .from('stripe_customers')
+        .upsert({
+          user_id: user.id,
+          stripe_customer_id: customerId,
+          email: user.email!,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'stripe_customer_id',
         });
     }
 
