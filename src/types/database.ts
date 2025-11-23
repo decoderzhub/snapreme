@@ -188,3 +188,76 @@ export interface AdminStats {
   completedCollaborations: number;
   pendingRequests: number;
 }
+
+export interface Post {
+  id: string;
+  creator_id: string;
+  created_at: string;
+  media_url: string | null;
+  thumbnail_url: string | null;
+  caption: string | null;
+  like_count: number;
+  comment_count: number;
+  view_count: number;
+  is_locked: boolean;
+  unlock_price_cents: number;
+  post_type: 'video' | 'image';
+}
+
+export interface ContentPackage {
+  id: string;
+  creator_id: string;
+  title: string;
+  description: string | null;
+  includes_summary: string | null;
+  cover_image_url: string | null;
+  price_cents: number;
+  items_count: number;
+  created_at: string;
+}
+
+export interface PostUnlock {
+  id: string;
+  post_id: string;
+  fan_id: string;
+  unlocked_at: string;
+}
+
+export interface PackagePurchase {
+  id: string;
+  package_id: string;
+  fan_id: string;
+  creator_id: string;
+  purchased_at: string;
+}
+
+export interface PpmThread {
+  id: string;
+  creator_id: string;
+  fan_id: string;
+  last_message_at: string;
+}
+
+export interface PpmMessage {
+  id: string;
+  thread_id: string;
+  sender_id: string;
+  is_creator: boolean;
+  text: string | null;
+  gift_emoji: string | null;
+  tip_cents: number;
+  is_priority: boolean;
+  created_at: string;
+}
+
+export interface Gift {
+  id: string;
+  name: string;
+  emoji: string;
+  coin_cost: number;
+}
+
+export interface Wallet {
+  user_id: string;
+  coin_balance: number;
+}

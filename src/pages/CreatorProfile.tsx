@@ -14,6 +14,14 @@ import {
 import { Creator } from '../types/database';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { useCreatorPosts, useContentPackages, usePostUnlocks, usePackagePurchases } from '../hooks/useCreatorContent';
+import { usePpmThread, usePpmMessages, useGifts, useWalletBalance } from '../hooks/usePpmMessaging';
+import { TeaserLayout } from '../components/creator/TeaserLayout';
+import { SimplePostsFeed } from '../components/creator/SimplePostsFeed';
+import { ContentPackagesCard } from '../components/creator/ContentPackagesCard';
+import { PpmChatCard } from '../components/creator/PpmChatCard';
+import { BuyCoinsModal } from '../components/creator/BuyCoinsModal';
+import { unlockPost, purchaseContentPackage } from '../lib/payments';
 
 export default function CreatorProfile() {
   const { handle } = useParams<{ handle: string }>();
@@ -27,6 +35,16 @@ export default function CreatorProfile() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [relatedCreators, setRelatedCreators] = useState<Creator[]>([]);
   const [checkingSubscription, setCheckingSubscription] = useState(false);
+  const [showBuyCoins, setShowBuyCoins] = useState(false);
+
+  const { posts } = useCreatorPosts(creator?.id);
+  const { packages } = useContentPackages(creator?.id);
+  const { unlocks } = usePostUnlocks(user?.id);
+  const { purchases } = usePackagePurchases(user?.id);
+  const { thread } = usePpmThread(creator?.id, user?.id);
+  const { messages } = usePpmMessages(thread?.id);
+  const { gifts } = useGifts();
+  const { balance, refetch: refetchBalance } = useWalletBalance(user?.id);
 
   const searchParams = new URLSearchParams(location.search);
   const unlockedFromQuery = searchParams.get('unlocked') === 'true';
@@ -144,6 +162,40 @@ export default function CreatorProfile() {
     } catch (err) {
       console.error('Error creating checkout session', err);
       alert('Failed to create checkout session. Please try again.');
+    }
+  };
+
+  const handleUnlockPost = async (postId: string) => {
+    if (!user) {
+      navigate(`/signup?next=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
+    try {
+      const result = await unlockPost(postId);
+      if (result.url) {
+        window.location.href = result.url;
+      }
+    } catch (error) {
+      console.error('Failed to unlock post:', error);
+      alert(error instanceof Error ? error.message : 'Failed to unlock post');
+    }
+  };
+
+  const handlePurchasePackage = async (packageId: string) => {
+    if (!user) {
+      navigate(`/signup?next=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
+    try {
+      const result = await purchaseContentPackage(packageId);
+      if (result.url) {
+        window.location.href = result.url;
+      }
+    } catch (error) {
+      console.error('Failed to purchase package:', error);
+      alert(error instanceof Error ? error.message : 'Failed to purchase package');
     }
   };
 
@@ -396,8 +448,131 @@ export default function CreatorProfile() {
           </div>
         </section>
 
-        {/* About + QR section */}
-        <section className="grid grid-cols-1 md:grid-cols-[1.6fr_minmax(0,1.1fr)] gap-6 md:gap-8">
+        {/* Content & Monetization Section */}
+        <section className="space-y-8">
+          {/* TikTok-style teaser for desktop */}
+          <TeaserLayout
+            posts={posts}
+            isSubscribed={isSubscribed}
+            fanId={user?.id}
+            onUnlockPost={handleUnlockPost}
+          />
+
+          {/* Simple feed for mobile */}
+          <SimplePostsFeed
+            posts={posts}
+            isSubscribed={isSubscribed}
+            fanId={user?.id}
+            onUnlockPost={handleUnlockPost}
+          />
+        </section>
+
+        {/* About + Monetization Grid */}
+        <section className="grid grid-cols-1 lg:grid-cols-[1.6fr_minmax(0,1.1fr)] gap-6 md:gap-8">
+          {/* Left: About + QR */}
+          <div className="space-y-6">
+            {/* About section */}
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 sm:p-6 space-y-4">
+              <h2 className="text-lg font-semibold text-slate-900">About</h2>
+              {bio ? (
+                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                  {bio}
+                </p>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  This creator hasn&apos;t added a bio yet.
+                </p>
+              )}
+
+              {isOwnProfile && looksLikeSnapBypass && (
+                <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-3 py-2.5">
+                  <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5" />
+                  <p className="text-xs text-amber-800">
+                    It looks like you might be mentioning Snapchat directly in your bio. To keep Snapreme as
+                    the secure middle layer, please avoid putting your Snapchat username or &quot;add me on SC&quot; here.
+                    Fans should only get access via the unlock + QR flow.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Snapchat QR section */}
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 sm:p-6 flex flex-col items-center">
+              <div className="flex items-center gap-2 mb-3">
+                <QrCode className="w-5 h-5 text-slate-800" />
+                <h2 className="text-sm font-semibold text-slate-900">
+                  Premium Snapchat access
+                </h2>
+              </div>
+
+              {!snapcodeUrl && isOwnProfile && (
+                <div className="text-center text-xs text-slate-500">
+                  <p className="mb-2">
+                    Add your Snapchat QR code in your account settings so fans can unlock it here after subscribing.
+                  </p>
+                  <Link
+                    to="/account/settings"
+                    className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-semibold"
+                  >
+                    Add Snapchat QR
+                  </Link>
+                </div>
+              )}
+
+              {!isOwnProfile && !isSubscribed && (
+                <div className="flex flex-col items-center justify-center flex-1 w-full">
+                  <div className="w-40 h-40 rounded-3xl bg-slate-100 flex items-center justify-center mb-3">
+                    <Lock className="w-10 h-10 text-slate-400" />
+                  </div>
+                  <p className="text-xs text-slate-500 text-center max-w-xs">
+                    Subscribe to unlock this creator&apos;s Snapchat QR code and access their premium content directly in Snapchat.
+                  </p>
+                </div>
+              )}
+
+              {(isSubscribed || isOwnProfile) && snapcodeUrl && (
+                <div className="flex flex-col items-center w-full mt-1">
+                  <div className="bg-slate-50 rounded-3xl p-4 flex items-center justify-center w-full">
+                    <img
+                      src={snapcodeUrl}
+                      alt="Snapchat QR code"
+                      className="w-40 h-40 sm:w-48 sm:h-48 object-contain"
+                    />
+                  </div>
+                  <p className="text-[11px] text-slate-500 text-center mt-2">
+                    Scan with Snapchat to connect. Do not share this publicly – it&apos;s reserved for paying fans.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Monetization sidebar */}
+          <div className="space-y-6 lg:sticky lg:top-4 lg:self-start">
+            {!isOwnProfile && (
+              <>
+                <ContentPackagesCard
+                  packages={packages}
+                  purchases={purchases}
+                  onPurchase={handlePurchasePackage}
+                />
+
+                <PpmChatCard
+                  threadId={thread?.id || null}
+                  messages={messages}
+                  balance={balance}
+                  gifts={gifts}
+                  currentUserId={user?.id}
+                  onBuyCoins={() => setShowBuyCoins(true)}
+                  onRefreshBalance={refetchBalance}
+                />
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* Old About + QR section - DELETE */}
+        <section className="hidden grid-cols-1 md:grid-cols-[1.6fr_minmax(0,1.1fr)] gap-6 md:gap-8">
           {/* About */}
           <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-5 sm:p-6 space-y-4">
             <h2 className="text-lg font-semibold text-slate-900">About</h2>
@@ -517,6 +692,8 @@ export default function CreatorProfile() {
           </section>
         )}
       </div>
+
+      {showBuyCoins && <BuyCoinsModal onClose={() => setShowBuyCoins(false)} />}
     </div>
   );
 }
