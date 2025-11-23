@@ -22,6 +22,7 @@ import AdminCreators from './pages/admin/AdminCreators';
 import AdminVerifications from './pages/admin/AdminVerifications';
 import AdminReports from './pages/admin/AdminReports';
 import AdminSettings from './pages/admin/AdminSettings';
+import CreatorProfile from './pages/CreatorProfile';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
 
         <Route path="/network" element={<Network />} />
+        <Route path="/creator/:handle" element={<CreatorProfile />} />
 
         <Route
           path="/dashboard"

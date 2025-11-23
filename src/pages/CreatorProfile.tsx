@@ -37,10 +37,16 @@ export default function CreatorProfile() {
       setLoading(true);
       const cleanHandle = handle?.replace('@', '');
 
+      if (!cleanHandle) {
+        setCreator(null);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('creators')
         .select('*')
-        .ilike('handle', `%${cleanHandle}%`)
+        .eq('handle', cleanHandle)
         .maybeSingle();
 
       if (!error && data) {
@@ -101,22 +107,41 @@ export default function CreatorProfile() {
     }
 
     try {
-      const res = await fetch('/api/payments/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fanId: user.id,
-          creatorId: (creator as any).id,
-          cardImage: (creator as any).card_image_url,
-        }),
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-stripe-checkout`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            creatorId: (creator as any).id,
+          }),
+        }
+      );
 
       const json = await res.json();
+      if (json.error) {
+        console.error('Checkout error:', json.error);
+        alert(`Failed to create checkout: ${json.error}`);
+        return;
+      }
+
       if (json.url) {
         window.location.href = json.url;
       }
     } catch (err) {
       console.error('Error creating checkout session', err);
+      alert('Failed to create checkout session. Please try again.');
     }
   };
 
