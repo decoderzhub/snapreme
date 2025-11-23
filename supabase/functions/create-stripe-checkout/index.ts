@@ -56,6 +56,9 @@ Deno.serve(async (req: Request) => {
         appUrl = 'http://localhost:5173';
       }
     }
+
+    // Remove trailing slash to avoid double slashes in URLs
+    appUrl = appUrl.replace(/\/$/, '');
     console.log('Using APP_URL:', appUrl);
 
     // PLACEHOLDER: Ensure STRIPE_SECRET_KEY is configured in Supabase Dashboard
