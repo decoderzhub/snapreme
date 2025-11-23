@@ -18,6 +18,7 @@ export interface ProfileUpdateData {
   top_regions?: string[];
   avatar_url?: string | null;
   card_image_url?: string | null;
+  cover_url?: string | null;
   snapcode_url?: string | null;
   tier?: 'Rising' | 'Pro' | 'Elite';
   onboarding_complete?: boolean;

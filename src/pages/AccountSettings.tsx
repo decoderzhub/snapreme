@@ -140,6 +140,7 @@ export default function AccountSettings() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCardImage, setUploadingCardImage] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingSnapcode, setUploadingSnapcode] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -168,6 +169,7 @@ export default function AccountSettings() {
     top_regions: [],
     avatar_url: null,
     card_image_url: null,
+    cover_url: null,
     snapcode_url: null,
   });
 
@@ -322,6 +324,25 @@ export default function AccountSettings() {
     }
 
     setUploadingCardImage(false);
+  };
+
+  const handleBannerUpload = async (file: File) => {
+    if (!user) return;
+
+    setUploadingBanner(true);
+    if (formData.cover_url) {
+      await deleteProfileImage(formData.cover_url);
+    }
+
+    const { url, error: uploadError } = await uploadProfileImage(file, user.id, 'cover');
+
+    if (uploadError) {
+      setError(uploadError.message);
+    } else if (url) {
+      handleInputChange('cover_url', url);
+    }
+
+    setUploadingBanner(false);
   };
 
   const handleSnapcodeUpload = async (file: File) => {
@@ -742,7 +763,7 @@ export default function AccountSettings() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50/60 to-transparent">
       <div className="relative h-48 w-full overflow-hidden">
         <img
-          src={formData.card_image_url || '/assets/snapreme-default-banner.svg'}
+          src={formData.cover_url || '/assets/snapreme-default-banner.svg'}
           alt="Profile Banner"
           className="w-full h-full object-cover"
         />
@@ -818,6 +839,16 @@ export default function AccountSettings() {
                 label="Card Image"
                 aspectRatio="aspect-[4/3]"
                 uploading={uploadingCardImage}
+              />
+            </div>
+            <div className="mt-6">
+              <ImageUpload
+                currentImage={formData.cover_url}
+                onImageSelect={handleBannerUpload}
+                onImageRemove={() => handleInputChange('cover_url', null)}
+                label="Banner Image"
+                aspectRatio="aspect-[21/9]"
+                uploading={uploadingBanner}
               />
             </div>
             <div className="mt-6">
