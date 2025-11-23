@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Search, Flame, Star, ChevronLeft, ChevronRight, Heart, TrendingUp, Sparkles } from 'lucide-react';
+import { Search, Flame, Star, ChevronLeft, ChevronRight, Heart, TrendingUp, Sparkles, MessageCircle, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Creator } from '../types/database';
@@ -304,20 +304,57 @@ export default function Network() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
 
-                    {/* Favorite Button */}
+                    {/* Right Side Action Buttons */}
                     {user && (
-                      <button
-                        onClick={(e) => handleFavoriteClick(e, activeCreator.id)}
-                        className="absolute top-6 right-6 p-3 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors z-10"
-                      >
-                        <Heart
-                          className={`w-5 h-5 ${
-                            isFavorite(activeCreator.id)
-                              ? 'fill-red-500 text-red-500'
-                              : 'text-white'
-                          }`}
-                        />
-                      </button>
+                      <div className="absolute right-4 bottom-32 flex flex-col gap-4 z-10">
+                        <button
+                          onClick={(e) => handleFavoriteClick(e, activeCreator.id)}
+                          className="flex flex-col items-center gap-1"
+                        >
+                          <div className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors flex items-center justify-center">
+                            <Heart
+                              className={`w-6 h-6 ${
+                                isFavorite(activeCreator.id)
+                                  ? 'fill-red-500 text-red-500'
+                                  : 'text-white'
+                              }`}
+                            />
+                          </div>
+                          <span className="text-white text-xs font-semibold">
+                            {activeCreator.followers > 1000
+                              ? `${Math.floor(activeCreator.followers / 1000)}K`
+                              : activeCreator.followers}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log('Message creator');
+                          }}
+                          className="flex flex-col items-center gap-1"
+                        >
+                          <div className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors flex items-center justify-center">
+                            <MessageCircle className="w-6 h-6 text-white" />
+                          </div>
+                          <span className="text-white text-xs font-semibold">
+                            {Math.floor(Math.random() * 200) + 50}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log('Tip creator');
+                          }}
+                          className="flex flex-col items-center gap-1"
+                        >
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 hover:brightness-110 transition-all flex items-center justify-center shadow-lg">
+                            <DollarSign className="w-6 h-6 text-white" />
+                          </div>
+                          <span className="text-white text-xs font-semibold">Tip</span>
+                        </button>
+                      </div>
                     )}
 
                     {/* Creator Info Overlay */}
@@ -576,20 +613,57 @@ export default function Network() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
 
-                    {/* Favorite Button */}
+                    {/* Right Side Action Buttons */}
                     {user && (
-                      <button
-                        onClick={(e) => handleFavoriteClick(e, activeCreator.id)}
-                        className="absolute top-6 right-6 p-3 rounded-full bg-black/50 backdrop-blur-sm z-10"
-                      >
-                        <Heart
-                          className={`w-5 h-5 ${
-                            isFavorite(activeCreator.id)
-                              ? 'fill-red-500 text-red-500'
-                              : 'text-white'
-                          }`}
-                        />
-                      </button>
+                      <div className="absolute right-4 bottom-32 flex flex-col gap-3 z-10">
+                        <button
+                          onClick={(e) => handleFavoriteClick(e, activeCreator.id)}
+                          className="flex flex-col items-center gap-1"
+                        >
+                          <div className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                            <Heart
+                              className={`w-6 h-6 ${
+                                isFavorite(activeCreator.id)
+                                  ? 'fill-red-500 text-red-500'
+                                  : 'text-white'
+                              }`}
+                            />
+                          </div>
+                          <span className="text-white text-xs font-semibold">
+                            {activeCreator.followers > 1000
+                              ? `${Math.floor(activeCreator.followers / 1000)}K`
+                              : activeCreator.followers}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log('Message creator');
+                          }}
+                          className="flex flex-col items-center gap-1"
+                        >
+                          <div className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                            <MessageCircle className="w-6 h-6 text-white" />
+                          </div>
+                          <span className="text-white text-xs font-semibold">
+                            {Math.floor(Math.random() * 200) + 50}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log('Tip creator');
+                          }}
+                          className="flex flex-col items-center gap-1"
+                        >
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
+                            <DollarSign className="w-6 h-6 text-white" />
+                          </div>
+                          <span className="text-white text-xs font-semibold">Tip</span>
+                        </button>
+                      </div>
                     )}
 
                     <div className="absolute bottom-0 left-0 right-0 p-6">
