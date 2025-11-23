@@ -39,7 +39,24 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    const appUrl = Deno.env.get('APP_URL') || 'http://localhost:5173';
+
+    // Get APP_URL from env or infer from request origin
+    let appUrl = Deno.env.get('APP_URL');
+    if (!appUrl) {
+      const origin = req.headers.get('origin') || req.headers.get('referer');
+      if (origin) {
+        try {
+          const url = new URL(origin);
+          appUrl = `${url.protocol}//${url.host}`;
+          console.log('Inferred APP_URL from request:', appUrl);
+        } catch {
+          appUrl = 'http://localhost:5173';
+        }
+      } else {
+        appUrl = 'http://localhost:5173';
+      }
+    }
+    console.log('Using APP_URL:', appUrl);
 
     // PLACEHOLDER: Ensure STRIPE_SECRET_KEY is configured in Supabase Dashboard
     // Navigate to: Project Settings > Edge Functions > Add Secret
@@ -109,6 +126,16 @@ Deno.serve(async (req: Request) => {
     if (!creator.stripe_price_id) {
       throw new Error('Creator has not set up their subscription price yet.');
     }
+
+    // Clean the handle for URL redirect (remove @ if present)
+    const cleanHandle = creator.handle?.replace('@', '') || '';
+    if (!cleanHandle) {
+      throw new Error('Creator does not have a valid handle configured.');
+    }
+
+    console.log('Creator handle:', creator.handle);
+    console.log('Clean handle:', cleanHandle);
+    console.log('Success URL will be:', `${appUrl}/creator/${cleanHandle}?unlocked=true`);
 
     // ============================================
     // STEP 5: Get or create Stripe Customer on CONNECTED ACCOUNT
@@ -199,9 +226,9 @@ Deno.serve(async (req: Request) => {
         },
       ],
 
-      // Redirect URLs
-      success_url: `${appUrl}/creator/${creator.handle}?unlocked=true`,
-      cancel_url: `${appUrl}/creator/${creator.handle}`,
+      // Redirect URLs (use cleaned handle without @)
+      success_url: `${appUrl}/creator/${cleanHandle}?unlocked=true`,
+      cancel_url: `${appUrl}/creator/${cleanHandle}`,
 
       /**
        * Subscription Data - configures how the subscription works
