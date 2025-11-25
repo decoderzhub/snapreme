@@ -23,15 +23,24 @@ import AdminVerifications from './pages/admin/AdminVerifications';
 import AdminReports from './pages/admin/AdminReports';
 import AdminSettings from './pages/admin/AdminSettings';
 import CreatorProfile from './pages/CreatorProfile';
+import SneakPeak from './pages/SneakPeak';
+import Inbox from './pages/Inbox';
+import ChatConversation from './pages/ChatConversation';
+import ChatSettings from './pages/ChatSettings';
+import BuyCoins from './pages/BuyCoins';
 
 function App() {
   const location = useLocation();
   const isCreatorProfilePage = location.pathname.startsWith('/creator/');
   const isNetworkPage = location.pathname === '/network';
+  const isSneakPeakPage = location.pathname === '/sneak-peak';
+  const isChatPage = location.pathname.startsWith('/chat/');
+  const isInboxPage = location.pathname === '/inbox';
+  const isBuyCoinsPage = location.pathname === '/buy-coins';
 
   return (
     <div className="min-h-screen bg-white">
-      {!isCreatorProfilePage && <NavBar />}
+      {!isCreatorProfilePage && !isSneakPeakPage && !isChatPage && !isInboxPage && !isBuyCoinsPage && <NavBar />}
 
       <Routes>
         <Route path="/" element={<Home />} />
@@ -39,6 +48,12 @@ function App() {
         <Route path="/signup" element={<Signup />} />
 
         <Route path="/network" element={<Network />} />
+        <Route path="/sneak-peak" element={<SneakPeak />} />
+        <Route path="/inbox" element={<Inbox />} />
+        <Route path="/messages" element={<Inbox />} />
+        <Route path="/chat/:chatId" element={<ChatConversation />} />
+        <Route path="/chat/:chatId/settings" element={<ChatSettings />} />
+        <Route path="/buy-coins" element={<BuyCoins />} />
         <Route path="/creator/:handle" element={<CreatorProfile />} />
 
         <Route
@@ -134,7 +149,7 @@ function App() {
         />
       </Routes>
 
-      {!isCreatorProfilePage && (
+      {!isCreatorProfilePage && !isSneakPeakPage && !isChatPage && !isInboxPage && !isBuyCoinsPage && (
         <div className={isNetworkPage ? 'hidden lg:block' : ''}>
           <Footer />
         </div>

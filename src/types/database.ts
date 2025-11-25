@@ -38,6 +38,7 @@ export interface Creator {
   subscription_price?: number;
   posts?: number;
   category?: string;
+  favorites_count?: number;
 }
 
 export interface CreatorNiche {
@@ -260,4 +261,27 @@ export interface Gift {
 export interface Wallet {
   user_id: string;
   coin_balance: number;
+}
+
+export interface Comment {
+  id: string;
+  creator_id: string;
+  user_id: string;
+  text: string;
+  created_at: string;
+  updated_at: string;
+  // Joined fields
+  user_display_name?: string;
+  user_avatar_url?: string;
+  likes_count?: number;
+  dislikes_count?: number;
+  user_reaction?: 'like' | 'dislike' | null;
+}
+
+export interface CommentReaction {
+  id: string;
+  comment_id: string;
+  user_id: string;
+  reaction_type: 'like' | 'dislike';
+  created_at: string;
 }

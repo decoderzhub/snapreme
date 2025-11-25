@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
-import { X, Lock, MessageCircle, Loader2, Download, Lightbulb } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { X, CreditCard, MessageSquare, Lock, Sparkles, TrendingUp, Eye, Users, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Creator } from '../types/database';
-import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
 
 interface Props {
   creator: Creator;
@@ -13,312 +10,185 @@ interface Props {
 export default function CreatorModal({ creator, onClose }: Props) {
   if (!creator.card_image_url || !creator.avatar_url) return null;
 
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [unlocking, setUnlocking] = useState(false);
-  const [checkingSubscription, setCheckingSubscription] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [showSnapcodeModal, setShowSnapcodeModal] = useState(false);
-
   const cover = creator.card_image_url || creator.cover_url || '/assets/snapreme-default-banner.svg';
-
   const price = creator.subscription_price || 5;
 
-  const snapcodeUrl = creator.snapcode_url;
+  // Generate mock revenue data based on creator stats
+  const baseRevenue = (creator.subscribers || 100) * price * 0.85;
+  const revenueStreams = [
+    {
+      icon: CreditCard,
+      label: 'Subscriptions',
+      value: baseRevenue,
+      percentage: 45,
+      color: 'from-purple-500 to-purple-600',
+      bgColor: 'bg-purple-500/10',
+      textColor: 'text-purple-600',
+    },
+    {
+      icon: MessageSquare,
+      label: 'Pay-Per-Message',
+      value: baseRevenue * 0.35,
+      percentage: 28,
+      color: 'from-blue-500 to-blue-600',
+      bgColor: 'bg-blue-500/10',
+      textColor: 'text-blue-600',
+    },
+    {
+      icon: Lock,
+      label: 'Exclusive Content',
+      value: baseRevenue * 0.25,
+      percentage: 18,
+      color: 'from-emerald-500 to-emerald-600',
+      bgColor: 'bg-emerald-500/10',
+      textColor: 'text-emerald-600',
+    },
+    {
+      icon: Sparkles,
+      label: 'Tips & Gifts',
+      value: baseRevenue * 0.15,
+      percentage: 9,
+      color: 'from-amber-500 to-orange-500',
+      bgColor: 'bg-amber-500/10',
+      textColor: 'text-amber-600',
+    },
+  ];
 
-  useEffect(() => {
-    async function checkSubscription() {
-      if (!user) {
-        setCheckingSubscription(false);
-        return;
-      }
+  const totalRevenue = revenueStreams.reduce((sum, stream) => sum + stream.value, 0);
 
-      // Check if user is admin
-      const { data: profile } = await supabase
-        .from('creators')
-        .select('is_admin')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (profile?.is_admin) {
-        setIsAdmin(true);
-        setIsUnlocked(true);
-        setCheckingSubscription(false);
-        return;
-      }
-
-      // Check subscription status
-      const { data } = await supabase
-        .from('subscriptions')
-        .select('is_active')
-        .eq('fan_id', user.id)
-        .eq('creator_id', creator.id)
-        .maybeSingle();
-
-      if (data?.is_active) {
-        setIsUnlocked(true);
-      }
-
-      setCheckingSubscription(false);
+  const formatCurrency = (value: number) => {
+    if (value >= 1000) {
+      return `$${(value / 1000).toFixed(1)}K`;
     }
-
-    checkSubscription();
-  }, [user, creator.id]);
-
-  useEffect(() => {
-    if (searchParams.get('unlocked') === 'true') {
-      setIsUnlocked(true);
-    }
-  }, [searchParams]);
-
-  const handleUnlock = async () => {
-    if (!user) {
-      navigate('/signup');
-      return;
-    }
-
-    if (!creator.is_stripe_connected) {
-      alert('This creator has not set up payments yet. Please try again later.');
-      return;
-    }
-
-    setUnlocking(true);
-
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
-
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-stripe-checkout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ creatorId: creator.id }),
-      });
-
-      const json = await res.json();
-
-      if (json.url) {
-        window.location.href = json.url;
-      } else {
-        throw new Error(json.error || 'Failed to create checkout session');
-      }
-    } catch (err) {
-      console.error('Error creating checkout:', err);
-      alert('Failed to start checkout. Please try again.');
-      setUnlocking(false);
-    }
+    return `$${value.toFixed(0)}`;
   };
 
-  const handleDownloadSnapcode = async () => {
-    if (!snapcodeUrl) return;
-
-    try {
-      const response = await fetch(snapcodeUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${creator.handle}-snapcode.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Error downloading snapcode:', err);
-      alert('Failed to download Snapcode. Please try again.');
-    }
+  const handleViewProfile = () => {
+    onClose();
+    navigate(`/creator/${creator.handle?.replace('@', '')}`);
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden relative"
+        className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden relative"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm hover:bg-white rounded-full p-2 z-10 shadow-lg"
+          className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm hover:bg-white rounded-full p-2 z-10 shadow-lg transition-colors"
         >
           <X className="w-5 h-5 text-slate-900" />
         </button>
 
-        <div className="relative h-60">
+        {/* Cover image */}
+        <div className="relative h-48">
           <img src={cover} alt={creator.display_name} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
 
-          <div className="absolute bottom-3 left-4">
-            <p className="text-xl text-white font-semibold">
-              {creator.display_name || creator.name}
-            </p>
-            <p className="text-white/80 text-sm">{creator.handle}</p>
+          {/* Creator info overlay */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="text-xl text-white font-bold">
+                  {creator.display_name || creator.name}
+                </p>
+                <p className="text-white/70 text-sm">{creator.handle}</p>
+              </div>
+              {creator.category && (
+                <span className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                  {creator.category}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="p-5 space-y-4">
-          <div className="grid grid-cols-3 text-center">
-            <div>
-              <p className="text-lg font-semibold text-slate-900">
-                {creator.profile_views ?? 0}
-              </p>
+        <div className="p-5 space-y-5">
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center p-3 bg-slate-50 rounded-xl">
+              <div className="flex items-center justify-center gap-1.5 mb-1">
+                <Eye className="w-4 h-4 text-slate-400" />
+                <p className="text-lg font-bold text-slate-900">
+                  {(creator.profile_views || 0).toLocaleString()}
+                </p>
+              </div>
               <p className="text-xs text-slate-500">Views</p>
             </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-900">
-                {creator.subscribers ?? 0}
-              </p>
+            <div className="text-center p-3 bg-slate-50 rounded-xl">
+              <div className="flex items-center justify-center gap-1.5 mb-1">
+                <Users className="w-4 h-4 text-slate-400" />
+                <p className="text-lg font-bold text-slate-900">
+                  {(creator.subscribers || 0).toLocaleString()}
+                </p>
+              </div>
               <p className="text-xs text-slate-500">Fans</p>
             </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-900">
-                {creator.posts ?? 0}
-              </p>
+            <div className="text-center p-3 bg-slate-50 rounded-xl">
+              <div className="flex items-center justify-center gap-1.5 mb-1">
+                <FileText className="w-4 h-4 text-slate-400" />
+                <p className="text-lg font-bold text-slate-900">
+                  {(creator.posts || 0).toLocaleString()}
+                </p>
+              </div>
               <p className="text-xs text-slate-500">Posts</p>
             </div>
           </div>
 
-          <p className="text-sm text-slate-700 leading-relaxed">
+          {/* Bio */}
+          <p className="text-sm text-slate-600 leading-relaxed">
             {creator.bio || 'This creator has not added a bio yet.'}
           </p>
 
-          {creator.category && (
-            <div className="flex gap-2 flex-wrap">
-              <span className="text-xs px-2 py-1 bg-blue-600/10 text-blue-600 rounded-full">
-                {creator.category}
-              </span>
+          {/* Revenue Analytics */}
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-emerald-500" />
+                <span className="text-sm font-semibold text-slate-700">Monthly Revenue</span>
+              </div>
+              <span className="text-lg font-bold text-slate-900">{formatCurrency(totalRevenue)}</span>
             </div>
-          )}
 
-          <div className="relative bg-slate-50 rounded-2xl p-4 flex items-center justify-center min-h-[160px]">
-            {snapcodeUrl ? (
-              <div
-                className={`relative ${isUnlocked ? 'cursor-pointer' : ''}`}
-                onClick={() => isUnlocked && setShowSnapcodeModal(true)}
-              >
-                <img
-                  src={snapcodeUrl}
-                  alt="Snapcode"
-                  className={`w-32 h-32 object-contain transition-all duration-300 ${
-                    isUnlocked ? 'hover:scale-105' : 'blur-xl'
-                  }`}
-                />
-                {isUnlocked && (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                    <div className="bg-black/70 rounded-lg px-3 py-2">
-                      <p className="text-white text-xs font-medium">Click to view</p>
+            {/* Revenue bars */}
+            <div className="space-y-3">
+              {revenueStreams.map((stream) => (
+                <div key={stream.label} className="group">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-6 h-6 rounded-lg ${stream.bgColor} flex items-center justify-center`}>
+                        <stream.icon className={`w-3.5 h-3.5 ${stream.textColor}`} />
+                      </div>
+                      <span className="text-xs font-medium text-slate-600">{stream.label}</span>
                     </div>
+                    <span className="text-xs font-semibold text-slate-700">{formatCurrency(stream.value)}</span>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-xs text-slate-500 text-center">
-                Snapcode not uploaded yet.
-              </div>
-            )}
-            {!isUnlocked && snapcodeUrl && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Lock className="w-8 h-8 text-slate-400" />
-              </div>
-            )}
+                  <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full bg-gradient-to-r ${stream.color} rounded-full transition-all duration-500 group-hover:brightness-110`}
+                      style={{ width: `${stream.percentage}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {checkingSubscription ? (
-            <div className="w-full flex items-center justify-center py-3">
-              <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
-            </div>
-          ) : !isUnlocked ? (
-            <button
-              onClick={handleUnlock}
-              disabled={unlocking}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-full shadow-md hover:brightness-105 transition-all font-semibold disabled:opacity-60"
-            >
-              {unlocking ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Lock className="w-4 h-4" />
-                  Unlock all content — ${price.toFixed(2)}/month
-                </>
-              )}
-            </button>
-          ) : (
-            <button className={`w-full flex items-center justify-center gap-2 text-white py-3 rounded-full shadow-md font-semibold ${
-              isAdmin ? 'bg-purple-600' : 'bg-green-600'
-            }`}>
-              <MessageCircle className="w-4 h-4" />
-              {isAdmin ? 'Admin Access' : 'Message on Snapchat'}
-            </button>
-          )}
-
-          {isUnlocked && snapcodeUrl && (
-            <p className="text-xs text-center text-slate-500">
-              Scan the Snapcode above to add {creator.display_name || creator.name} on Snapchat
-            </p>
-          )}
+          {/* CTA Button */}
+          <button
+            onClick={handleViewProfile}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3.5 rounded-full shadow-lg hover:shadow-xl hover:brightness-105 transition-all font-semibold"
+          >
+            View Full Profile
+          </button>
         </div>
       </div>
-
-      {showSnapcodeModal && isUnlocked && snapcodeUrl && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setShowSnapcodeModal(false)}
-        >
-          <div
-            className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold text-slate-900">Scan to Add</h3>
-              <button
-                onClick={() => setShowSnapcodeModal(false)}
-                className="bg-slate-100 hover:bg-slate-200 rounded-full p-2 transition-colors"
-              >
-                <X className="w-5 h-5 text-slate-900" />
-              </button>
-            </div>
-
-            <div className="bg-yellow-50 rounded-2xl p-8 mb-6 flex items-center justify-center">
-              <img
-                src={snapcodeUrl}
-                alt="Snapcode"
-                className="w-80 h-80 object-contain"
-              />
-            </div>
-
-            <button
-              onClick={handleDownloadSnapcode}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-colors mb-4"
-            >
-              <Download className="w-5 h-5" />
-              Download Snapcode
-            </button>
-
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
-              <Lightbulb className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-blue-900 mb-1">Pro Tip</p>
-                <p className="text-xs text-blue-700 leading-relaxed">
-                  After downloading, open your Photos app, find the Snapcode, and long press on the image. Select "Open in Snapchat" to add {creator.display_name || creator.name} instantly!
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

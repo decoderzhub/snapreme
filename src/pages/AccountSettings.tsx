@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, Loader, CheckCircle, AlertCircle, Eye, Lock, X, TrendingUp, Star, Crown, Heart } from 'lucide-react';
+import { Save, Loader, CheckCircle, AlertCircle, Eye, Lock, X, TrendingUp, Star, Crown, Heart, Camera, User, Palette, Dumbbell, Shirt, Briefcase, Gamepad2, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ImageUpload from '../components/ImageUpload';
-import Field from '../components/Field';
 import {
   getCurrentUserProfile,
   updateUserProfile,
@@ -15,17 +14,14 @@ import {
 import { Creator } from '../types/database';
 import { supabase } from '../lib/supabase';
 
-const NICHE_OPTIONS = [
-  'Fashion & Beauty',
-  'Fitness & Health',
-  'Food & Cooking',
-  'Travel & Lifestyle',
-  'Gaming & Tech',
-  'Comedy & Entertainment',
-  'Business & Finance',
-  'Art & Photography',
-  'Music & Dance',
-  'Education & Learning',
+// Categories aligned with Explore/Network page
+const CATEGORY_OPTIONS = [
+  { id: 'Fitness', label: 'Fitness', icon: Dumbbell },
+  { id: 'Fashion', label: 'Fashion', icon: Shirt },
+  { id: 'Art', label: 'Art & Design', icon: Palette },
+  { id: 'Coaching', label: 'Coaching', icon: Briefcase },
+  { id: 'Cosplay', label: 'Cosplay', icon: Gamepad2 },
+  { id: 'Lifestyle', label: 'Lifestyle', icon: Sparkles },
 ];
 
 const REGION_OPTIONS = [
@@ -49,14 +45,20 @@ function getTierStyle(tier: 'Rising' | 'Pro' | 'Elite') {
     Rising: {
       icon: TrendingUp,
       gradient: 'from-emerald-500 to-teal-500',
+      bg: 'bg-emerald-500/20',
+      text: 'text-emerald-400',
     },
     Pro: {
       icon: Star,
       gradient: 'from-blue-500 to-cyan-500',
+      bg: 'bg-blue-500/20',
+      text: 'text-blue-400',
     },
     Elite: {
       icon: Crown,
       gradient: 'from-amber-500 to-orange-500',
+      bg: 'bg-amber-500/20',
+      text: 'text-amber-400',
     }
   };
   return styles[tier];
@@ -65,26 +67,25 @@ function getTierStyle(tier: 'Rising' | 'Pro' | 'Elite') {
 interface PreviewCardProps {
   formData: ProfileUpdateData;
   tier: 'Rising' | 'Pro' | 'Elite';
-  niches: string[];
+  category: string;
 }
 
-function PreviewCard({ formData, tier, niches }: PreviewCardProps) {
+function PreviewCard({ formData, tier, category }: PreviewCardProps) {
   const tierStyle = getTierStyle(tier);
   const TierIcon = tierStyle.icon;
   const price = formData.subscription_price || 5;
-  const category = niches[0] || 'Creator';
 
   if (!formData.card_image_url) {
     return (
-      <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 text-center">
-        <Eye className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-        <p className="text-slate-500 text-sm">Upload a card image to preview</p>
+      <div className="bg-slate-800/50 backdrop-blur-sm rounded-3xl border border-slate-700 p-8 text-center">
+        <Camera className="w-12 h-12 text-slate-500 mx-auto mb-3" />
+        <p className="text-slate-400 text-sm">Upload a card image to preview</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="w-full bg-slate-800/50 backdrop-blur-sm rounded-3xl border border-slate-700 overflow-hidden">
       <div className="relative h-[420px] w-full">
         <img
           src={formData.card_image_url}
@@ -92,7 +93,7 @@ function PreviewCard({ formData, tier, niches }: PreviewCardProps) {
           className="w-full h-full object-cover"
         />
 
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80" />
 
         <div className={`absolute top-3 left-3 px-3 py-1.5 bg-gradient-to-r ${tierStyle.gradient} rounded-full flex items-center gap-1.5 shadow-lg`}>
           <TierIcon className="w-3.5 h-3.5 text-white" />
@@ -102,13 +103,13 @@ function PreviewCard({ formData, tier, niches }: PreviewCardProps) {
         <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end justify-between">
           <div className="text-left space-y-1 flex-1">
             <p className="text-white text-lg font-semibold leading-tight">
-              {formData.name || 'Your Name'}
+              {formData.display_name || formData.name || 'Your Name'}
             </p>
             <p className="text-white/80 text-sm">{formData.handle || '@yourhandle'}</p>
 
             <div className="flex items-center gap-2 mt-1">
               <span className="px-2 py-0.5 text-[11px] bg-white/20 text-white rounded-full">
-                {category}
+                {category || 'Creator'}
               </span>
             </div>
           </div>
@@ -140,8 +141,6 @@ export default function AccountSettings() {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCardImage, setUploadingCardImage] = useState(false);
-  const [uploadingBanner, setUploadingBanner] = useState(false);
-  const [uploadingSnapcode, setUploadingSnapcode] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [profile, setProfile] = useState<Creator | null>(null);
@@ -150,6 +149,7 @@ export default function AccountSettings() {
   const [fanUsername, setFanUsername] = useState('');
   const [fanAvatarUrl, setFanAvatarUrl] = useState<string | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const [formData, setFormData] = useState<ProfileUpdateData>({
     name: '',
@@ -173,14 +173,11 @@ export default function AccountSettings() {
     snapcode_url: null,
   });
 
-  const [niches, setNiches] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [username, setUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPasswordSection, setShowPasswordSection] = useState(false);
-  const [contentTypeInput, setContentTypeInput] = useState('');
-  const [topRegionInput, setTopRegionInput] = useState('');
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const derivedTier = calculateTierFromFollowers(formData.followers || 0);
 
@@ -224,6 +221,10 @@ export default function AccountSettings() {
       const extractedUsername = profileData.handle ? profileData.handle.replace(/^@+/, '') : '';
       setUsername(extractedUsername);
 
+      // Get first niche as category
+      const niches = profileData.niches || [];
+      setSelectedCategory(niches[0] || '');
+
       setFormData({
         name: profileData.name || '',
         display_name: profileData.display_name || '',
@@ -245,15 +246,12 @@ export default function AccountSettings() {
         cover_url: profileData.cover_url,
         snapcode_url: profileData.snapcode_url,
       });
-      setNiches(profileData.niches || []);
     } else {
-      const { data: fanData, error: fanError } = await supabase
+      const { data: fanData } = await supabase
         .from('fan_profiles')
         .select('*')
         .eq('id', user.id)
         .maybeSingle();
-
-      console.log('Fan profile check:', { fanData, fanError, userId: user.id });
 
       if (fanData) {
         setIsFan(true);
@@ -311,11 +309,7 @@ export default function AccountSettings() {
       await deleteProfileImage(formData.card_image_url);
     }
 
-    const { url, error: uploadError } = await uploadProfileImage(
-      file,
-      user.id,
-      'card'
-    );
+    const { url, error: uploadError } = await uploadProfileImage(file, user.id, 'card');
 
     if (uploadError) {
       setError(uploadError.message);
@@ -324,79 +318,6 @@ export default function AccountSettings() {
     }
 
     setUploadingCardImage(false);
-  };
-
-  const handleBannerUpload = async (file: File) => {
-    if (!user) return;
-
-    setUploadingBanner(true);
-    if (formData.cover_url) {
-      await deleteProfileImage(formData.cover_url);
-    }
-
-    const { url, error: uploadError } = await uploadProfileImage(file, user.id, 'cover');
-
-    if (uploadError) {
-      setError(uploadError.message);
-    } else if (url) {
-      handleInputChange('cover_url', url);
-    }
-
-    setUploadingBanner(false);
-  };
-
-  const handleSnapcodeUpload = async (file: File) => {
-    if (!user) return;
-
-    setUploadingSnapcode(true);
-    if (formData.snapcode_url) {
-      await deleteProfileImage(formData.snapcode_url);
-    }
-
-    const { url, error: uploadError } = await uploadProfileImage(file, user.id, 'snapcode');
-
-    if (uploadError) {
-      setError(uploadError.message);
-    } else if (url) {
-      handleInputChange('snapcode_url', url);
-    }
-
-    setUploadingSnapcode(false);
-  };
-
-  const handleNicheToggle = (niche: string) => {
-    setNiches((prev) => {
-      if (prev.includes(niche)) {
-        return prev.filter((n) => n !== niche);
-      } else if (prev.length < 3) {
-        return [...prev, niche];
-      }
-      return prev;
-    });
-    setHasUnsavedChanges(true);
-  };
-
-  const addContentType = () => {
-    const currentTypes = formData.content_types || [];
-    if (contentTypeInput.trim() && !currentTypes.includes(contentTypeInput.trim()) && currentTypes.length < 3) {
-      handleInputChange('content_types', [...currentTypes, contentTypeInput.trim()]);
-      setContentTypeInput('');
-    }
-  };
-
-  const removeContentType = (type: string) => {
-    handleInputChange('content_types', formData.content_types?.filter((t) => t !== type) || []);
-  };
-
-  const addTopRegion = () => {
-    if (topRegionInput.trim() && !formData.top_regions?.includes(topRegionInput.trim())) {
-      handleInputChange('top_regions', [...(formData.top_regions || []), topRegionInput.trim()]);
-      setTopRegionInput('');
-    }
-  };
-
-  const removeTopRegion = (region: string) => {
-    handleInputChange('top_regions', formData.top_regions?.filter((r) => r !== region) || []);
   };
 
   const handleSave = async () => {
@@ -418,6 +339,7 @@ export default function AccountSettings() {
     }
 
     const derivedTierValue = calculateTierFromFollowers(formData.followers || 0);
+    const niches = selectedCategory ? [selectedCategory] : [];
 
     const { error: updateError } = await updateUserProfile(
       user.id,
@@ -465,17 +387,12 @@ export default function AccountSettings() {
   };
 
   const calculateCompleteness = () => {
+    // Only count essential required fields
     const fields = [
-      formData.name,
+      formData.display_name || formData.name,
       formData.handle,
-      formData.bio,
-      formData.short_bio,
       formData.avatar_url,
       formData.card_image_url,
-      formData.cover_url,
-      formData.region,
-      niches.length > 0,
-      formData.content_types && formData.content_types.length > 0,
     ];
 
     const completed = fields.filter(Boolean).length;
@@ -484,24 +401,24 @@ export default function AccountSettings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50/60 to-transparent flex items-center justify-center">
-        <Loader className="w-8 h-8 text-blue-600 animate-spin" />
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+        <Loader className="w-8 h-8 text-purple-500 animate-spin" />
       </div>
     );
   }
 
   if (!profile && !isFan) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50/60 to-transparent flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
-          <AlertCircle className="w-16 h-16 text-orange-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">No Profile Found</h2>
-          <p className="text-slate-600 mb-6">
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center px-4">
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-8 max-w-md w-full text-center">
+          <AlertCircle className="w-16 h-16 text-orange-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-white mb-2">No Profile Found</h2>
+          <p className="text-slate-400 mb-6">
             You need to create a creator profile first.
           </p>
           <button
             onClick={() => navigate('/apply')}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all"
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-lg hover:brightness-110 transition-all"
           >
             Create Profile
           </button>
@@ -510,39 +427,40 @@ export default function AccountSettings() {
     );
   }
 
+  // Fan profile view
   if (isFan) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-pink-50/60 to-transparent py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-neutral-950 py-12">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">Account Settings</h1>
-            <p className="text-slate-600">Manage your fan account preferences</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Account Settings</h1>
+            <p className="text-slate-400">Manage your fan account preferences</p>
           </div>
 
           <div className="space-y-6">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start gap-2">
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
             {success && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-start gap-2">
+              <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-xl flex items-start gap-2">
                 <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <span>Settings updated successfully!</span>
               </div>
             )}
 
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
               <div className="flex items-center gap-3 mb-6">
-                <Heart className="w-6 h-6 text-pink-600" />
-                <h2 className="text-2xl font-bold text-slate-900">Fan Profile</h2>
+                <User className="w-6 h-6 text-purple-400" />
+                <h2 className="text-xl font-bold text-white">Fan Profile</h2>
               </div>
 
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-3">Profile Picture</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-3">Profile Picture</label>
                   <ImageUpload
                     currentImageUrl={fanAvatarUrl}
                     onUploadStart={() => setUploadingAvatar(true)}
@@ -562,70 +480,32 @@ export default function AccountSettings() {
                     aspectRatio="square"
                     label="Upload Avatar"
                   />
-                  {uploadingAvatar && (
-                    <div className="flex items-center gap-2 mt-2 text-sm text-slate-600">
-                      <Loader className="w-4 h-4 animate-spin" />
-                      <span>Uploading avatar...</span>
-                    </div>
-                  )}
                 </div>
 
-                <div className="pt-4 border-t border-slate-200">
-                  <h3 className="text-lg font-bold text-slate-900 mb-4">Basic Information</h3>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                  <input
+                    type="text"
+                    value={fanUsername}
+                    onChange={(e) => {
+                      const sanitized = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+                      setFanUsername(sanitized);
+                      setHasUnsavedChanges(true);
+                    }}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+                    placeholder="username"
+                    maxLength={30}
+                  />
+                </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Username <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={fanUsername}
-                        onChange={(e) => {
-                          const sanitized = e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
-                          setFanUsername(sanitized);
-                          setHasUnsavedChanges(true);
-                        }}
-                        className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
-                        placeholder="username"
-                        maxLength={30}
-                      />
-                      <p className="text-xs text-slate-500 mt-1">
-                        Letters, numbers, and underscores only
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Handle
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <span className="px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-l-lg text-slate-700 font-medium">
-                          @
-                        </span>
-                        <input
-                          type="text"
-                          value={fanUsername}
-                          disabled
-                          className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-r-lg text-slate-600 cursor-not-allowed"
-                          placeholder="username"
-                        />
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Auto-generated from your username
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                      <input
-                        type="text"
-                        value={user?.email || ''}
-                        disabled
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-600"
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                  <input
+                    type="text"
+                    value={user?.email || ''}
+                    disabled
+                    className="w-full px-4 py-3 bg-slate-900/30 border border-slate-700 rounded-xl text-slate-500"
+                  />
                 </div>
 
                 <button
@@ -639,7 +519,6 @@ export default function AccountSettings() {
                       .update({
                         avatar_url: fanAvatarUrl,
                         username: fanUsername,
-                        handle: fanUsername ? `@${fanUsername}` : null,
                       })
                       .eq('id', user.id);
 
@@ -653,7 +532,7 @@ export default function AccountSettings() {
                     setSaving(false);
                   }}
                   disabled={saving || !hasUnsavedChanges}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-pink-600 text-white font-semibold rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving ? (
                     <>
@@ -667,89 +546,20 @@ export default function AccountSettings() {
                     </>
                   )}
                 </button>
-
-                <div className="border-t border-slate-200 pt-6">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Payment Methods</h3>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Payment methods are securely managed through Stripe. When you subscribe to a creator, you'll be prompted to add a payment method.
-                  </p>
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                    <p className="text-sm text-blue-900 font-medium">
-                      Payment methods are added during subscription checkout
-                    </p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      You'll add a payment method when you subscribe to your first creator
-                    </p>
-                  </div>
-                </div>
-
-                <div className="border-t border-slate-200 pt-6">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-4">Want to become a creator?</h3>
-                  <p className="text-sm text-slate-600 mb-4">
-                    Start monetizing your Snapchat content and connect with fans.
-                  </p>
-                  <button
-                    onClick={() => navigate('/apply')}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all"
-                  >
-                    Apply as Creator
-                  </button>
-                </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
-              <h2 className="text-xl font-bold text-slate-900 mb-4">Change Password</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">New Password</label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
-                    placeholder="Enter new password"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Confirm Password</label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500"
-                    placeholder="Confirm new password"
-                  />
-                </div>
-                <button
-                  onClick={async () => {
-                    if (newPassword !== confirmPassword) {
-                      setError('Passwords do not match');
-                      return;
-                    }
-                    if (newPassword.length < 6) {
-                      setError('Password must be at least 6 characters');
-                      return;
-                    }
-                    setSaving(true);
-                    setError('');
-                    const { error: pwError } = await updateUserPassword(newPassword);
-                    if (pwError) {
-                      setError(pwError.message);
-                    } else {
-                      setSuccess(true);
-                      setNewPassword('');
-                      setConfirmPassword('');
-                      setTimeout(() => setSuccess(false), 3000);
-                    }
-                    setSaving(false);
-                  }}
-                  disabled={saving || !newPassword || !confirmPassword}
-                  className="w-full px-6 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? 'Updating...' : 'Update Password'}
-                </button>
-              </div>
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Want to become a creator?</h3>
+              <p className="text-sm text-slate-400 mb-4">
+                Start monetizing your content and connect with fans.
+              </p>
+              <button
+                onClick={() => navigate('/apply')}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:brightness-110 transition-all"
+              >
+                Apply as Creator
+              </button>
             </div>
           </div>
         </div>
@@ -758,447 +568,260 @@ export default function AccountSettings() {
   }
 
   const completeness = calculateCompleteness();
+  const tierStyle = getTierStyle(derivedTier);
+  const TierIcon = tierStyle.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50/60 to-transparent">
-      <div className="relative h-48 w-full overflow-hidden">
-        <img
-          src={formData.cover_url || '/assets/snapreme-default-banner.svg'}
-          alt="Profile Banner"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/60" />
-        <div className="absolute bottom-6 left-0 right-0">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between">
-              <div>
-                <h1 className="text-4xl font-bold text-white mb-2">Account Settings</h1>
-                <p className="text-white/90">Manage your creator profile and account preferences</p>
-              </div>
-              <button
-                onClick={() => setShowPreviewModal(true)}
-                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors"
-              >
-                <Eye className="w-4 h-4" />
-                Preview Card
-              </button>
+    <div className="min-h-screen bg-neutral-950">
+      {/* Header */}
+      <div className="relative bg-gradient-to-br from-purple-900/50 via-slate-900 to-blue-900/50 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Edit Profile</h1>
+              <p className="text-slate-400">Customize your creator card and profile details</p>
             </div>
+            <button
+              onClick={() => setShowPreviewModal(true)}
+              className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              Preview
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8" />
-
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start gap-2">
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl flex items-start gap-2">
                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <span className="text-sm">{error}</span>
               </div>
             )}
 
             {success && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-start gap-2">
+              <div className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-xl flex items-start gap-2">
                 <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <span className="text-sm">Profile updated successfully!</span>
               </div>
             )}
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-slate-900">Profile Completeness</h3>
-                <span className="text-2xl font-bold text-blue-600">{completeness}%</span>
+            {/* Progress */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-white">Profile Completeness</h3>
+                <span className="text-2xl font-bold text-purple-400">{completeness}%</span>
               </div>
-              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-blue-600 to-indigo-500 h-full transition-all duration-500"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 h-full transition-all duration-500"
                   style={{ width: `${completeness}%` }}
                 />
               </div>
               <p className="text-xs text-slate-500 mt-2">
-                Complete your profile to increase visibility to brands
+                Complete your profile to increase visibility
               </p>
             </div>
-          <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Profile Pictures</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ImageUpload
-                currentImage={formData.avatar_url}
-                onImageSelect={handleAvatarUpload}
-                onImageRemove={() => handleInputChange('avatar_url', null)}
-                label="Avatar Image"
-                aspectRatio="aspect-square"
-                uploading={uploadingAvatar}
-              />
-              <ImageUpload
-                currentImage={formData.card_image_url}
-                onImageSelect={handleCardImageUpload}
-                onImageRemove={() => handleInputChange('card_image_url', null)}
-                label="Card Image"
-                aspectRatio="aspect-[4/3]"
-                uploading={uploadingCardImage}
-              />
-            </div>
-            <div className="mt-6">
-              <ImageUpload
-                currentImage={formData.cover_url}
-                onImageSelect={handleBannerUpload}
-                onImageRemove={() => handleInputChange('cover_url', null)}
-                label="Banner Image"
-                aspectRatio="aspect-[21/9]"
-                uploading={uploadingBanner}
-              />
-            </div>
-            <div className="mt-6">
+
+            {/* Profile Images */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
+              <h2 className="text-xl font-bold text-white mb-6">Profile Images</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <ImageUpload
-                  currentImage={formData.snapcode_url}
-                  onImageSelect={handleSnapcodeUpload}
-                  onImageRemove={() => handleInputChange('snapcode_url', null)}
-                  label="Snapcode Image"
+                  currentImage={formData.avatar_url}
+                  onImageSelect={handleAvatarUpload}
+                  onImageRemove={() => handleInputChange('avatar_url', null)}
+                  label="Profile Picture"
                   aspectRatio="aspect-square"
-                  uploading={uploadingSnapcode}
+                  uploading={uploadingAvatar}
                 />
+                <ImageUpload
+                  currentImage={formData.card_image_url}
+                  onImageSelect={handleCardImageUpload}
+                  onImageRemove={() => handleInputChange('card_image_url', null)}
+                  label="Card Image"
+                  aspectRatio="aspect-[3/4]"
+                  uploading={uploadingCardImage}
+                />
+              </div>
+            </div>
+
+            {/* Basic Info */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
+              <h2 className="text-xl font-bold text-white mb-6">Basic Information</h2>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Display Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.display_name || ''}
+                    onChange={(e) => handleInputChange('display_name', e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+                    placeholder="Your display name"
+                    maxLength={50}
+                  />
+                </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-900 mb-3">
-                    Example Snapcode
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Username <span className="text-red-400">*</span>
                   </label>
-                  <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center">
-                    <img
-                      src="/assets/example-snapcode.png"
-                      alt="Example Snapcode"
-                      className="w-full h-full object-contain"
+                  <div className="flex">
+                    <span className="px-4 py-3 bg-slate-700 border border-slate-600 border-r-0 rounded-l-xl text-slate-400">
+                      @
+                    </span>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => handleUsernameChange(e.target.value)}
+                      className="flex-1 px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-r-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500 transition-colors"
+                      placeholder="username"
+                      maxLength={30}
                     />
                   </div>
+                  <p className="text-xs text-slate-500 mt-1">Letters, numbers, and underscores only</p>
                 </div>
-              </div>
 
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                <p className="text-sm text-blue-900 font-medium mb-1">Pro Tip: How to get your Snapcode</p>
-                <p className="text-xs text-blue-700">
-                  Open Snapchat, go to your profile, and tap the <span className="font-semibold">Share</span> icon in the top right.
-                  You'll see your Snap QR code with a "Share" button. Tap it to download the image to your photos,
-                  then upload it here for your profile. It should look similar to the example on the right.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Basic Information</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Username <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => handleUsernameChange(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="yourusername"
-                  maxLength={30}
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  Letters, numbers, and underscores only
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Handle <span className="text-red-500">*</span>
-                </label>
-                <div className="flex items-center gap-2">
-                  <span className="px-4 py-3 bg-slate-100 border border-slate-200 rounded-l-lg text-slate-700 font-medium">
-                    @
-                  </span>
-                  <input
-                    type="text"
-                    value={username}
-                    disabled
-                    className="flex-1 px-4 py-3 border border-slate-200 rounded-r-lg bg-slate-50 text-slate-700 cursor-not-allowed"
-                    placeholder="yourusername"
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Bio</label>
+                  <textarea
+                    value={formData.bio || ''}
+                    onChange={(e) => handleInputChange('bio', e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500 transition-colors resize-none"
+                    placeholder="Tell fans about yourself..."
+                    rows={3}
+                    maxLength={300}
                   />
+                  <p className="text-xs text-slate-500 mt-1">{formData.bio?.length || 0}/300 characters</p>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
-                  Auto-generated from your username
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Creator Tier (auto-assigned)
-                </label>
-                <div className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-700">
-                  {derivedTier}
-                  <span className="ml-2 text-xs text-slate-500">
-                    based on total fans
-                  </span>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Creator Tier</label>
+                  <div className={`flex items-center gap-3 px-4 py-3 ${tierStyle.bg} border border-slate-600 rounded-xl`}>
+                    <TierIcon className={`w-5 h-5 ${tierStyle.text}`} />
+                    <span className={`font-semibold ${tierStyle.text}`}>{derivedTier}</span>
+                    <span className="text-xs text-slate-500">• Based on followers</span>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Region
-                </label>
-                <select
-                  value={formData.region || ''}
-                  onChange={(e) => handleInputChange('region', e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select a region</option>
-                  {REGION_OPTIONS.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
-                    </option>
-                  ))}
-                </select>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Region</label>
+                  <select
+                    value={formData.region || ''}
+                    onChange={(e) => handleInputChange('region', e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-white focus:outline-none focus:border-purple-500 transition-colors"
+                  >
+                    <option value="">Select a region</option>
+                    {REGION_OPTIONS.map((region) => (
+                      <option key={region} value={region}>{region}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-          </section>
 
-          <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Bio & About</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Short Bio
-                  <span className="text-xs text-slate-500 font-normal ml-2">
-                    (shown on cards)
-                  </span>
-                </label>
-                <textarea
-                  value={formData.short_bio || ''}
-                  onChange={(e) => handleInputChange('short_bio', e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[80px] resize-y"
-                  placeholder="A brief description of what you do..."
-                  maxLength={160}
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  {formData.short_bio?.length || 0}/160 characters
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Bio
-                  <span className="text-xs text-slate-500 font-normal ml-2">
-                    (shown on profile header)
-                  </span>
-                </label>
-                <textarea
-                  value={formData.bio || ''}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] resize-y"
-                  placeholder="Tell brands about yourself..."
-                  maxLength={300}
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  {formData.bio?.length || 0}/300 characters
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  About
-                  <span className="text-xs text-slate-500 font-normal ml-2">
-                    (full profile description)
-                  </span>
-                </label>
-                <textarea
-                  value={formData.about || ''}
-                  onChange={(e) => handleInputChange('about', e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[200px] resize-y"
-                  placeholder="Write a detailed description about your content, style, and what makes you unique..."
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  {formData.about?.length || 0} characters
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Content & Niches</h2>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-3">
-                  Select Your Niches
-                  <span className="text-xs text-slate-500 font-normal ml-2">
-                    (maximum 3)
-                  </span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {NICHE_OPTIONS.map((niche) => (
+            {/* Category */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
+              <h2 className="text-xl font-bold text-white mb-2">Content Category</h2>
+              <p className="text-sm text-slate-400 mb-6">Select your primary content category</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {CATEGORY_OPTIONS.map((category) => {
+                  const isSelected = selectedCategory === category.id;
+                  const Icon = category.icon;
+                  return (
                     <button
-                      key={niche}
+                      key={category.id}
                       type="button"
-                      onClick={() => handleNicheToggle(niche)}
-                      disabled={!niches.includes(niche) && niches.length >= 3}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                        niches.includes(niche)
-                          ? 'bg-blue-600 text-white'
-                          : niches.length >= 3
-                          ? 'bg-slate-50 text-slate-400 cursor-not-allowed'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      onClick={() => {
+                        setSelectedCategory(category.id);
+                        setHasUnsavedChanges(true);
+                      }}
+                      className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                        isSelected
+                          ? 'bg-purple-500/20 border-purple-500 text-white'
+                          : 'bg-slate-900/30 border-slate-600 text-slate-400 hover:border-slate-500 hover:text-slate-300'
                       }`}
                     >
-                      {niche}
+                      <Icon className={`w-5 h-5 ${isSelected ? 'text-purple-400' : ''}`} />
+                      <span className="font-medium">{category.label}</span>
                     </button>
-                  ))}
-                </div>
-                <p className="text-xs text-slate-500 mt-2">
-                  {niches.length}/3 niches selected
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Content Types
-                  <span className="text-xs text-slate-500 font-normal ml-2">
-                    (maximum 3)
-                  </span>
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={contentTypeInput}
-                    onChange={(e) => setContentTypeInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addContentType())}
-                    placeholder="e.g., Stories, Reels, Spotlights"
-                    disabled={(formData.content_types?.length || 0) >= 3}
-                    className="flex-1 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
-                  />
-                  <button
-                    type="button"
-                    onClick={addContentType}
-                    disabled={(formData.content_types?.length || 0) >= 3}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
-                  >
-                    Add
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.content_types?.map((type) => (
-                    <span
-                      key={type}
-                      className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
-                    >
-                      {type}
-                      <button
-                        type="button"
-                        onClick={() => removeContentType(type)}
-                        className="hover:text-blue-900"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <p className="text-xs text-slate-500">
-                  {formData.content_types?.length || 0}/3 content types added
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Top Audience Regions
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={topRegionInput}
-                    onChange={(e) => setTopRegionInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTopRegion())}
-                    placeholder="e.g., United States, United Kingdom"
-                    className="flex-1 px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={addTopRegion}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    Add
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.top_regions?.map((region) => (
-                    <span
-                      key={region}
-                      className="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-sm"
-                    >
-                      {region}
-                      <button
-                        type="button"
-                        onClick={() => removeTopRegion(region)}
-                        className="hover:text-slate-900"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             </div>
-          </section>
 
-          <section className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <Lock className="w-6 h-6" />
-              Account Security
-            </h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
-                  Email Address
-                </label>
-                <div className="w-full px-4 py-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-700">
-                  {user?.email}
-                </div>
-                <p className="text-xs text-slate-500 mt-2">
-                  Email is locked because it is used for account verification.
-                </p>
+            {/* Security */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700 p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Lock className="w-5 h-5 text-slate-400" />
+                <h2 className="text-xl font-bold text-white">Account Security</h2>
               </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
+                  <input
+                    type="text"
+                    value={user?.email || ''}
+                    disabled
+                    className="w-full px-4 py-3 bg-slate-900/30 border border-slate-700 rounded-xl text-slate-500"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
+                </div>
 
-              {!showPasswordSection ? (
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordSection(true)}
-                  className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-                >
-                  Change Password
-                </button>
-              ) : (
-                <div className="space-y-4 pt-4 border-t border-slate-200">
-                  <Field
-                    label="New Password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
-                  <Field
-                    label="Confirm New Password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                  />
+                {!showPasswordSection ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowPasswordSection(false);
-                      setNewPassword('');
-                      setConfirmPassword('');
-                    }}
-                    className="text-slate-600 hover:text-slate-700 font-medium text-sm"
+                    onClick={() => setShowPasswordSection(true)}
+                    className="text-purple-400 hover:text-purple-300 font-medium text-sm"
                   >
-                    Cancel
+                    Change Password
                   </button>
-                </div>
-              )}
+                ) : (
+                  <div className="space-y-4 pt-4 border-t border-slate-700">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">New Password</label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">Confirm Password</label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPasswordSection(false);
+                        setNewPassword('');
+                        setConfirmPassword('');
+                      }}
+                      className="text-slate-400 hover:text-slate-300 font-medium text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </section>
 
-            <div className="flex items-center justify-end gap-4 bg-white rounded-xl shadow-lg border border-slate-100 p-4">
+            {/* Save Button */}
+            <div className="flex items-center justify-end gap-4 bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
               <button
                 type="button"
                 onClick={() => {
@@ -1211,7 +834,7 @@ export default function AccountSettings() {
                     navigate(-1);
                   }
                 }}
-                className="px-6 py-3 text-slate-600 font-semibold hover:text-slate-900 transition-colors"
+                className="px-6 py-3 text-slate-400 font-semibold hover:text-white transition-colors"
               >
                 Cancel
               </button>
@@ -1219,7 +842,7 @@ export default function AccountSettings() {
               <button
                 onClick={handleSave}
                 disabled={saving || !hasUnsavedChanges}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-600 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-xl hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <>
@@ -1236,26 +859,35 @@ export default function AccountSettings() {
             </div>
           </div>
 
+          {/* Preview Sidebar */}
           <div className="hidden lg:block lg:col-span-1">
             <div className="sticky top-8 space-y-4">
-              <h3 className="text-lg font-semibold text-slate-900">Card Preview</h3>
-              <PreviewCard formData={formData} tier={derivedTier} niches={niches} />
+              <h3 className="text-lg font-semibold text-white">Card Preview</h3>
+              <PreviewCard
+                formData={formData}
+                tier={derivedTier}
+                category={CATEGORY_OPTIONS.find(c => c.id === selectedCategory)?.label || 'Creator'}
+              />
             </div>
           </div>
         </div>
       </div>
 
+      {/* Mobile Preview Modal */}
       {showPreviewModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 lg:hidden">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 lg:hidden">
           <div className="relative w-full max-w-sm">
             <button
               onClick={() => setShowPreviewModal(false)}
               className="absolute -top-12 right-0 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
-              aria-label="Close preview"
             >
               <X className="w-6 h-6" />
             </button>
-            <PreviewCard formData={formData} tier={derivedTier} niches={niches} />
+            <PreviewCard
+              formData={formData}
+              tier={derivedTier}
+              category={CATEGORY_OPTIONS.find(c => c.id === selectedCategory)?.label || 'Creator'}
+            />
           </div>
         </div>
       )}

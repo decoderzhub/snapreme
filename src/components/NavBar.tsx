@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, User, Settings, Shield, LayoutDashboard, DollarSign } from 'lucide-react';
+import { Menu, X, LogOut, User, Settings, Shield, LayoutDashboard, DollarSign, MessageCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -15,6 +15,8 @@ export default function NavBar() {
   const navigate = useNavigate();
 
   const [creatorHandle, setCreatorHandle] = useState<string | null>(null);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -22,13 +24,15 @@ export default function NavBar() {
       setIsStripeConnected(false);
       setNeedsOnboarding(false);
       setCreatorHandle(null);
+      setUserAvatar(null);
+      setUserName(null);
       return;
     }
 
     async function checkCreatorStatus() {
       const { data } = await supabase
         .from('creators')
-        .select('id, is_stripe_connected, onboarding_complete, handle')
+        .select('id, is_stripe_connected, onboarding_complete, handle, avatar_url, display_name, name')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -37,16 +41,31 @@ export default function NavBar() {
         setIsStripeConnected(!!data.is_stripe_connected);
         setNeedsOnboarding(!data.onboarding_complete);
         setCreatorHandle(data.handle?.replace('@', '') || null);
+        setUserAvatar(data.avatar_url || null);
+        setUserName(data.display_name || data.name || null);
       } else {
         setIsCreator(false);
         setIsStripeConnected(false);
         setNeedsOnboarding(false);
         setCreatorHandle(null);
+        // Try to get name from user metadata
+        setUserName(user.user_metadata?.full_name || user.email?.split('@')[0] || null);
+        setUserAvatar(user.user_metadata?.avatar_url || null);
       }
     }
 
     checkCreatorStatus();
   }, [user]);
+
+  // Get user initials
+  const getUserInitials = () => {
+    if (!userName) return user?.email?.charAt(0).toUpperCase() || 'U';
+    const names = userName.trim().split(' ');
+    if (names.length >= 2) {
+      return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+    }
+    return names[0].charAt(0).toUpperCase();
+  };
 
   const isHomePage = location.pathname === '/';
 
@@ -69,11 +88,12 @@ export default function NavBar() {
   };
 
   const navLinks = [
-    { label: 'Home', type: 'link' as const, path: '/', requiresAuth: false },
-    { label: 'Explore creators', type: 'link' as const, path: '/network', requiresAuth: true },
-    { label: 'For creators', type: 'link' as const, path: '/creators', requiresAuth: false },
-    { label: 'Pricing', type: 'link' as const, path: '/pricing', requiresAuth: false },
-  ].filter(link => !link.requiresAuth || user);
+    { label: 'Home', type: 'link' as const, path: '/', requiresAuth: false, hideWhenLoggedIn: false },
+    { label: 'Sneak Peak', type: 'link' as const, path: '/sneak-peak', requiresAuth: false, hideWhenLoggedIn: false },
+    { label: 'Explore creators', type: 'link' as const, path: '/network', requiresAuth: true, hideWhenLoggedIn: false },
+    { label: 'For Creators', type: 'link' as const, path: '/creators', requiresAuth: false, hideWhenLoggedIn: true },
+    { label: 'Pricing', type: 'link' as const, path: '/pricing', requiresAuth: false, hideWhenLoggedIn: false },
+  ].filter(link => (!link.requiresAuth || user) && (!link.hideWhenLoggedIn || !user));
 
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 border-b border-white/40">
@@ -126,9 +146,17 @@ export default function NavBar() {
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen((v) => !v)}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-slate-900 text-white hover:bg-slate-800"
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 text-white hover:brightness-110 transition-all overflow-hidden ring-2 ring-white/20"
                 >
-                  <User className="w-4 h-4" />
+                  {userAvatar ? (
+                    <img
+                      src={userAvatar}
+                      alt={userName || 'Profile'}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-sm font-semibold">{getUserInitials()}</span>
+                  )}
                 </button>
 
                 {isUserMenuOpen && (
@@ -168,13 +196,23 @@ export default function NavBar() {
                     )}
                     <button
                       onClick={() => {
+                        navigate('/inbox');
+                        setIsUserMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Inbox</span>
+                    </button>
+                    <button
+                      onClick={() => {
                         navigate('/dashboard');
                         setIsUserMenuOpen(false);
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
                     >
                       <LayoutDashboard className="w-4 h-4" />
-                      <span>Dashboard</span>
+                      <span>Creator Studio</span>
                     </button>
                     {isCreator && (
                       <button
@@ -196,7 +234,7 @@ export default function NavBar() {
                       className="w-full flex items-center gap-2 px-3 py-2 text-left text-slate-700 hover:bg-slate-50"
                     >
                       <Settings className="w-4 h-4" />
-                      <span>Account settings</span>
+                      <span>Edit Profile</span>
                     </button>
                     {isAdmin && (
                       <button
@@ -325,13 +363,23 @@ export default function NavBar() {
                 )}
                 <button
                   onClick={() => {
+                    navigate('/inbox');
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Inbox</span>
+                </button>
+                <button
+                  onClick={() => {
                     navigate('/dashboard');
                     setIsMenuOpen(false);
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-50"
                 >
                   <LayoutDashboard className="w-4 h-4" />
-                  <span>Dashboard</span>
+                  <span>Creator Studio</span>
                 </button>
                 {isCreator && (
                   <button
@@ -353,7 +401,7 @@ export default function NavBar() {
                   className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-700 hover:bg-slate-50"
                 >
                   <Settings className="w-4 h-4" />
-                  <span>Account settings</span>
+                  <span>Edit Profile</span>
                 </button>
                 {isAdmin && (
                   <button

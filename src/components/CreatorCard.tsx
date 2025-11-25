@@ -4,15 +4,24 @@ import { useFavorites } from '../contexts/FavoritesContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+type CardSize = 'tall' | 'medium' | 'short';
+
 interface Props {
   creator: Creator;
   onClick?: () => void;
+  size?: CardSize;
 }
 
-export default function CreatorCard({ creator, onClick }: Props) {
+export default function CreatorCard({ creator, onClick, size = 'medium' }: Props) {
   const { user } = useAuth();
   const { isFavorite, toggleFavorite } = useFavorites();
   const navigate = useNavigate();
+
+  const aspectRatios: Record<CardSize, string> = {
+    tall: 'aspect-[3/5]',
+    medium: 'aspect-[4/5]',
+    short: 'aspect-[5/4]',
+  };
 
   if (!creator.card_image_url || !creator.avatar_url) return null;
 
@@ -66,7 +75,7 @@ export default function CreatorCard({ creator, onClick }: Props) {
       className="w-full bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden
                  hover:shadow-md transition-all active:scale-[0.99]"
     >
-      <div className="relative h-[420px] w-full">
+      <div className={`relative ${aspectRatios[size]} w-full`}>
         <img
           src={cover}
           alt={creator.display_name}

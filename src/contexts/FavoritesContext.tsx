@@ -46,6 +46,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     const isFav = favorites.has(creatorId);
 
     if (isFav) {
+      // Remove favorite
       const { error } = await supabase
         .from('favorites')
         .delete()
@@ -58,14 +59,55 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
           next.delete(creatorId);
           return next;
         });
+
+        // Decrement favorites count on creator
+        try {
+          const { error: rpcError } = await supabase.rpc('decrement_favorites_count', { creator_id: creatorId });
+          if (rpcError) {
+            // Fallback if RPC doesn't exist - direct update
+            const { data } = await supabase
+              .from('creators')
+              .select('favorites_count')
+              .eq('id', creatorId)
+              .single();
+            const currentCount = data?.favorites_count ?? 0;
+            await supabase
+              .from('creators')
+              .update({ favorites_count: Math.max(0, currentCount - 1) })
+              .eq('id', creatorId);
+          }
+        } catch (err) {
+          console.error('Error updating favorites count:', err);
+        }
       }
     } else {
+      // Add favorite
       const { error } = await supabase
         .from('favorites')
         .insert({ user_id: user.id, creator_id: creatorId });
 
       if (!error) {
         setFavorites((prev) => new Set(prev).add(creatorId));
+
+        // Increment favorites count on creator
+        try {
+          const { error: rpcError } = await supabase.rpc('increment_favorites_count', { creator_id: creatorId });
+          if (rpcError) {
+            // Fallback if RPC doesn't exist - direct update
+            const { data } = await supabase
+              .from('creators')
+              .select('favorites_count')
+              .eq('id', creatorId)
+              .single();
+            const currentCount = data?.favorites_count ?? 0;
+            await supabase
+              .from('creators')
+              .update({ favorites_count: currentCount + 1 })
+              .eq('id', creatorId);
+          }
+        } catch (err) {
+          console.error('Error updating favorites count:', err);
+        }
       }
     }
   };

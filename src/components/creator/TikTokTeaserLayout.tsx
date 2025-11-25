@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import type { Post, ContentPackage, Creator } from '../../types/database';
 import { RecentVideosSidebar } from './RecentVideosSidebar';
 import { MainVideoPlayer } from './MainVideoPlayer';
@@ -15,6 +15,7 @@ interface TikTokTeaserLayoutProps {
   unlockedPostIds: Set<string>;
   onUnlockPost: (postId: string) => void;
   onViewPackage: (pkg: ContentPackage) => void;
+  ppmCard?: ReactNode;
 }
 
 export function TikTokTeaserLayout({
@@ -27,6 +28,7 @@ export function TikTokTeaserLayout({
   unlockedPostIds,
   onUnlockPost,
   onViewPackage,
+  ppmCard,
 }: TikTokTeaserLayoutProps) {
   const displayPosts = isOwnProfile ? getPostsWithWelcome(posts) : posts;
   const [activePost, setActivePost] = useState<Post | null>(displayPosts[0] || null);
@@ -66,14 +68,17 @@ export function TikTokTeaserLayout({
         onUnlock={onUnlockPost}
       />
 
-      <HighlightsAndBundles
-        posts={displayPosts}
-        packages={packages}
-        onSelectPost={handleSelectPost}
-        onViewPackage={onViewPackage}
-        isSubscribed={isSubscribed}
-        unlockedPostIds={unlockedPostIds}
-      />
+      <div className="space-y-6">
+        <HighlightsAndBundles
+          posts={displayPosts}
+          packages={packages}
+          onSelectPost={handleSelectPost}
+          onViewPackage={onViewPackage}
+          isSubscribed={isSubscribed}
+          unlockedPostIds={unlockedPostIds}
+        />
+        {ppmCard}
+      </div>
     </div>
   );
 }
